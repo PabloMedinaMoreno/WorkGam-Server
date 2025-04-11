@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Schema for creating a worker.
@@ -13,17 +13,17 @@ import { z } from "zod";
  * @property {string} [phone] - The optional phone number of the worker.
  */
 export const createWorkerSchema = z.object({
-  username: z.string().min(1, { message: "El nombre de usuario es requerido" }),
-  email: z.string().email({ message: "El correo electrónico debe ser válido" }),
+  username: z.string().min(1, { message: 'El nombre de usuario es requerido' }),
+  email: z.string().email({ message: 'El correo electrónico debe ser válido' }),
   password: z
     .string()
-    .min(5, { message: "La contraseña debe tener al menos 5 caracteres" }),
-  gender: z.enum(["male", "female"], {
+    .min(5, { message: 'La contraseña debe tener al menos 5 caracteres' }),
+  gender: z.enum(['male', 'female'], {
     errorMap: () => ({ message: "El género debe ser 'male' o 'female'" }),
   }),
   role_id: z.preprocess(
     (val) => Number(val),
-    z.number({ invalid_type_error: "El role_id debe ser un número" })
+    z.number({ invalid_type_error: 'El role_id debe ser un número' }),
   ),
   phone: z.string().optional(),
 });
@@ -39,11 +39,11 @@ export const createWorkerSchema = z.object({
  * @property {string} [phone] - The optional phone number of the worker.
  */
 export const updateWorkerSchema = z.object({
-  username: z.string().min(1, { message: "El nombre de usuario es requerido" }),
-  email: z.string().email({ message: "El correo electrónico debe ser válido" }),
+  username: z.string().min(1, { message: 'El nombre de usuario es requerido' }),
+  email: z.string().email({ message: 'El correo electrónico debe ser válido' }),
   role_id: z.preprocess(
     (val) => Number(val),
-    z.number({ invalid_type_error: "El role_id debe ser un número" })
+    z.number({ invalid_type_error: 'El role_id debe ser un número' }),
   ),
   phone: z.string().optional(),
 });

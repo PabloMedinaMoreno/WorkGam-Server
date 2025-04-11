@@ -1,12 +1,12 @@
-import { S3Client } from "@aws-sdk/client-s3";
+import { S3Client } from '@aws-sdk/client-s3';
 import {
   AWS_ACCESS_KEY_ID,
   AWS_REGION,
   AWS_SECRET_ACCESS_KEY,
   AWS_BUCKET_NAME,
-} from "../config/config.js";
-import { ListBucketsCommand } from "@aws-sdk/client-s3";
-import { HeadBucketCommand } from "@aws-sdk/client-s3";
+} from '../config/config.js';
+import { ListBucketsCommand } from '@aws-sdk/client-s3';
+import { HeadBucketCommand } from '@aws-sdk/client-s3';
 
 // Create an S3 client
 // This client is used to interact with the S3 service
@@ -30,11 +30,11 @@ export async function checkS3Connection() {
   try {
     const data = await s3.send(new ListBucketsCommand({}));
     console.log(
-      "✅ Conectado a S3. Buckets disponibles:",
-      data.Buckets.map((b) => b.Name)
+      '✅ Conectado a S3. Buckets disponibles:',
+      data.Buckets.map((b) => b.Name),
     );
   } catch (error) {
-    console.error("❌ Error conectando con S3:", error);
+    console.error('❌ Error conectando con S3:', error);
   }
 }
 

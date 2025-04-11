@@ -7,7 +7,7 @@ import {
   getTasksService,
   rejectTaskService,
   uploadTaskService,
-} from "../services/task.service.js";
+} from '../services/task.service.js';
 
 /**
  * Retrieves all tasks.
@@ -24,8 +24,8 @@ export const getTasks = async (req, res) => {
     const tasks = await getTasksService();
     res.status(200).json(tasks);
   } catch (error) {
-    console.error("Error al obtener las tareas:", error);
-    res.status(500).json({ message: "Error al obtener las tareas" });
+    console.error('Error al obtener las tareas:', error);
+    res.status(500).json({ message: 'Error al obtener las tareas' });
   }
 };
 
@@ -45,8 +45,8 @@ export const getPendingTasks = async (req, res) => {
     const tasks = await getPendingTaskService(employeeId);
     res.status(200).json(tasks);
   } catch (error) {
-    console.error("Error al obtener las tareas pendientes:", error);
-    res.status(500).json({ message: "Error al obtener las tareas pendientes" });
+    console.error('Error al obtener las tareas pendientes:', error);
+    res.status(500).json({ message: 'Error al obtener las tareas pendientes' });
   }
 };
 
@@ -66,10 +66,10 @@ export const getCompletedTasks = async (req, res) => {
     const completedTasks = await getCompletedTasksService(employeeId);
     res.status(200).json(completedTasks);
   } catch (error) {
-    console.error("Error al obtener las tareas completadas:", error);
+    console.error('Error al obtener las tareas completadas:', error);
     res
       .status(500)
-      .json({ message: "Error al obtener las tareas completadas" });
+      .json({ message: 'Error al obtener las tareas completadas' });
   }
 };
 
@@ -92,12 +92,12 @@ export const acceptTask = async (req, res) => {
       startedTaskId,
       employeeId,
       socketId,
-      req.app.locals.io
+      req.app.locals.io,
     );
     res.status(200).json(updatedTask);
   } catch (error) {
-    console.error("Error al aceptar la tarea:", error);
-    res.status(500).json({ message: "Error al aceptar la tarea" });
+    console.error('Error al aceptar la tarea:', error);
+    res.status(500).json({ message: 'Error al aceptar la tarea' });
   }
 };
 
@@ -121,12 +121,12 @@ export const rejectTask = async (req, res) => {
       employeeId,
       reason,
       socketId,
-      req.app.locals.io
+      req.app.locals.io,
     );
     res.status(200).json(updatedTask);
   } catch (error) {
-    console.error("Error al rechazar la tarea:", error);
-    res.status(500).json({ message: "Error al rechazar la tarea" });
+    console.error('Error al rechazar la tarea:', error);
+    res.status(500).json({ message: 'Error al rechazar la tarea' });
   }
 };
 
@@ -144,10 +144,10 @@ export const deleteTask = async (req, res) => {
   const { taskId } = req.params;
   try {
     await deleteTaskService(taskId);
-    res.status(204).json({ message: "Tarea eliminada correctamente" });
+    res.status(204).json({ message: 'Tarea eliminada correctamente' });
   } catch (error) {
-    console.error("Error al eliminar la tarea:", error);
-    res.status(500).json({ message: "Error al eliminar la tarea" });
+    console.error('Error al eliminar la tarea:', error);
+    res.status(500).json({ message: 'Error al eliminar la tarea' });
   }
 };
 
@@ -169,19 +169,19 @@ export const uploadTask = async (req, res) => {
       clientId,
       startedProcedureId,
       taskId,
-      req.file
+      req.file,
     );
     res
       .status(200)
-      .json({ message: "Tarea iniciada correctamente", task: startedTask });
+      .json({ message: 'Tarea iniciada correctamente', task: startedTask });
   } catch (error) {
-    if (error.message === "La tarea ya está completada o pendiente") {
-      console.error("La tarea ya está completada o pendiente:", error);
+    if (error.message === 'La tarea ya está completada o pendiente') {
+      console.error('La tarea ya está completada o pendiente:', error);
       res.status(409).json({ message: error.message });
     }
     else { // Handle other errors
-      console.error("Error al subir el documento de la tarea:", error);
-      res.status(500).json({ message: "Error al subir el documento de la tarea" });
+      console.error('Error al subir el documento de la tarea:', error);
+      res.status(500).json({ message: 'Error al subir el documento de la tarea' });
     }
   }
 };
@@ -219,8 +219,8 @@ export const updateTask = async (req, res) => {
     });
     res.status(200).json(updatedTask);
   } catch (error) {
-    console.error("Error al actualizar la tarea:", error);
-    res.status(500).json({ message: "Error al actualizar la tarea" });
+    console.error('Error al actualizar la tarea:', error);
+    res.status(500).json({ message: 'Error al actualizar la tarea' });
   }
 };
 

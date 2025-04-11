@@ -1,8 +1,8 @@
-import { pool } from "../databases/db.js";
-import { createAndSendNotificationService } from "./notification.service.js";
-import { handleXPAndNotificationService } from "./gamification.service.js";
-import { selectEmployeeByRoleService } from "./worker.service.js";
-import { updateStartedProcedureStatusService } from "./procedure.service.js";
+import { pool } from '../databases/db.js';
+import { createAndSendNotificationService } from './notification.service.js';
+import { handleXPAndNotificationService } from './gamification.service.js';
+import { selectEmployeeByRoleService } from './worker.service.js';
+import { updateStartedProcedureStatusService } from './procedure.service.js';
 
 /**
  * Retrieves all tasks.
@@ -12,11 +12,11 @@ import { updateStartedProcedureStatusService } from "./procedure.service.js";
  */
 export const getTasksService = async () => {
   try {
-    const tasks = await pool.query("SELECT * FROM task");
+    const tasks = await pool.query('SELECT * FROM task');
     return tasks.rows;
   } catch (error) {
-    console.error("Error al obtener las tareas:", error);
-    throw new Error("Error al obtener las tareas");
+    console.error('Error al obtener las tareas:', error);
+    throw new Error('Error al obtener las tareas');
   }
 };
 
@@ -52,7 +52,7 @@ export const getPendingTaskService = async (employeeId) => {
       WHERE it.employee_id = $1
         AND it.status = 'pending'
     `,
-      [employeeId]
+      [employeeId],
     );
 
     const tasks = tasksQuery.rows;
@@ -72,8 +72,8 @@ export const getPendingTaskService = async (employeeId) => {
       })
       .sort((a, b) => a.time_left_ms - b.time_left_ms);
   } catch (error) {
-    console.error("Error al obtener las tareas pendientes:", error);
-    throw new Error("Error al obtener las tareas pendientes");
+    console.error('Error al obtener las tareas pendientes:', error);
+    throw new Error('Error al obtener las tareas pendientes');
   }
 };
 
@@ -105,12 +105,12 @@ export const getCompletedTasksService = async (employeeId) => {
       WHERE i.employee_id = $1 AND i.status != 'pending'
       ORDER BY i.end_date DESC
     `,
-      [employeeId]
+      [employeeId],
     );
     return completedTasksQuery.rows;
   } catch (error) {
-    console.error("Error al obtener las tareas completadas:", error);
-    throw new Error("Error al obtener las tareas completadas");
+    console.error('Error al obtener las tareas completadas:', error);
+    throw new Error('Error al obtener las tareas completadas');
   }
 };
 
@@ -126,43 +126,43 @@ export const getCompletedTasksService = async (employeeId) => {
 export const acceptTaskService = async (startedTaskId, employeeId, socketId, io) => {
   try {
     // Verify that the task is pending and belongs to the employee
-    const startedTask = await getStartedTaskByStatusService(startedTaskId, employeeId, "pending");
+    const startedTask = await getStartedTaskByStatusService(startedTaskId, employeeId, 'pending');
 
     // Update the task status to "completed"
-    const updatedStartedTask = await updateStartedTaskStatusService(startedTaskId, "completed");
+    const updatedStartedTask = await updateStartedTaskStatusService(startedTaskId, 'completed');
 
     // Check if the task is completed and update the procedure status accordingly
 
     // Get the number of completed tasks for the started procedure
     const completedTasks = await pool.query(
-      `SELECT COUNT(*) FROM started_task WHERE started_procedure_id = $1 AND status = 'completed'`,
-      [startedTask.started_procedure_id]
+      'SELECT COUNT(*) FROM started_task WHERE started_procedure_id = $1 AND status = \'completed\'',
+      [startedTask.started_procedure_id],
     );
 
     const procedureId = await pool.query(
-      `SELECT procedure_id FROM started_procedure WHERE id = $1`,
-      [startedTask.started_procedure_id]
+      'SELECT procedure_id FROM started_procedure WHERE id = $1',
+      [startedTask.started_procedure_id],
     );
 
     const procedure = await pool.query(
-      `SELECT * FROM procedure WHERE id = $1`,
-      [procedureId.rows[0].procedure_id]
+      'SELECT * FROM procedure WHERE id = $1',
+      [procedureId.rows[0].procedure_id],
     );
 
     const startedProcedure = await pool.query(
-      `SELECT * FROM started_procedure WHERE id = $1`,
-      [startedTask.started_procedure_id]
+      'SELECT * FROM started_procedure WHERE id = $1',
+      [startedTask.started_procedure_id],
     );
 
     // Get the total number of tasks for the procedure
     const totalTasks = await pool.query(
-      `SELECT COUNT(*) FROM task WHERE procedure_id = $1`,
-      [procedureId.rows[0].procedure_id]
+      'SELECT COUNT(*) FROM task WHERE procedure_id = $1',
+      [procedureId.rows[0].procedure_id],
     );
 
     const taskNameResult = await pool.query(
-      `SELECT name FROM task WHERE id = $1`,
-      [startedTask.task_id]
+      'SELECT name FROM task WHERE id = $1',
+      [startedTask.task_id],
     );
 
     const taskName = taskNameResult.rows[0].name;
@@ -174,32 +174,32 @@ export const acceptTaskService = async (startedTaskId, employeeId, socketId, io)
       `La tarea "${taskName}" del procedimiento "${procedure.rows[0].name}" ha sido completada`,
     );
 
-    let newStartedProcedureStatus = "in_progress";
+    let newStartedProcedureStatus = 'in_progress';
 
     // Check if all tasks are completed
     if (parseInt(completedTasks.rows[0].count) === parseInt(totalTasks.rows[0].count)) {
       // If all tasks are completed, update the procedure status to "completed" and notify the client
-      newStartedProcedureStatus = "completed";
+      newStartedProcedureStatus = 'completed';
 
       // Update the end date of the started procedure
       const endDate = new Date();
       await pool.query(
-        `UPDATE started_procedure SET end_date = $1 WHERE id = $2`,
-        [endDate, startedTask.started_procedure_id]
+        'UPDATE started_procedure SET end_date = $1 WHERE id = $2',
+        [endDate, startedTask.started_procedure_id],
       );
 
       // Notify the client about the task completion or procedure completion
-    await createAndSendNotificationService(
-      startedProcedure.rows[0].client_id,
-      `El procedimiento "${procedure.rows[0].name}" ha sido completado`,
-    );
+      await createAndSendNotificationService(
+        startedProcedure.rows[0].client_id,
+        `El procedimiento "${procedure.rows[0].name}" ha sido completado`,
+      );
 
     }
 
-    // Update the procedure status 
+    // Update the procedure status
     await updateStartedProcedureStatusService(
       startedProcedure.rows[0].id,
-      newStartedProcedureStatus
+      newStartedProcedureStatus,
     );
 
     const task = await getTaskService(startedTask.task_id);
@@ -211,13 +211,13 @@ export const acceptTaskService = async (startedTaskId, employeeId, socketId, io)
       updatedStartedTask,
       socketId,
       io,
-      true
+      true,
     );
 
     return updatedStartedTask;
   } catch (error) {
-    console.error("Error al completar la tarea:", error);
-    throw new Error("Error al completar la tarea");
+    console.error('Error al completar la tarea:', error);
+    throw new Error('Error al completar la tarea');
   }
 };
 
@@ -233,22 +233,22 @@ export const acceptTaskService = async (startedTaskId, employeeId, socketId, io)
  */
 export const rejectTaskService = async (startedTaskId, employeeId, reason, socketId, io) => {
   try {
-    const startedTask = await getStartedTaskByStatusService(startedTaskId, employeeId, "pending");
-    const updatedTask = await updateStartedTaskStatusService(startedTaskId, "rejected", reason);
+    const startedTask = await getStartedTaskByStatusService(startedTaskId, employeeId, 'pending');
+    const updatedTask = await updateStartedTaskStatusService(startedTaskId, 'rejected', reason);
 
     // Update the procedure status to "in_progress" if the task is rejected
     await updateStartedProcedureStatusService(
-      startedTask.started_procedure_id, "in_progress"
+      startedTask.started_procedure_id, 'in_progress',
     );
 
     const clientId = await pool.query(
-      `SELECT client_id FROM started_procedure WHERE id = $1`,
-      [startedTask.started_procedure_id]
+      'SELECT client_id FROM started_procedure WHERE id = $1',
+      [startedTask.started_procedure_id],
     );
 
     const taskName = await pool.query(
-      `SELECT name FROM task WHERE id = $1`,
-      [startedTask.task_id]
+      'SELECT name FROM task WHERE id = $1',
+      [startedTask.task_id],
     );
 
     // Notify the client about the task rejection
@@ -266,13 +266,13 @@ export const rejectTaskService = async (startedTaskId, employeeId, reason, socke
       updatedTask,
       socketId,
       io,
-      false
+      false,
     );
 
     return updatedTask;
   } catch (error) {
-    console.error("Error al rechazar la tarea:", error);
-    throw new Error("Error al rechazar la tarea");
+    console.error('Error al rechazar la tarea:', error);
+    throw new Error('Error al rechazar la tarea');
   }
 };
 
@@ -293,20 +293,20 @@ export const rejectTaskService = async (startedTaskId, employeeId, reason, socke
  */
 export const updateTaskService = async (
   taskId,
-  { name, description, xp, procedure_id, role_id, estimated_duration_days, difficulty }
+  { name, description, xp, procedure_id, role_id, estimated_duration_days, difficulty },
 ) => {
   try {
     // Verify that the task exists
-    const task = await getTaskService(taskId);
+    await getTaskService(taskId);
     // Update the task details
     const updatedTask = await pool.query(
-      "UPDATE task SET name = $1, description = $2, xp = $3, procedure_id = $4, role_id = $5, estimated_duration_days = $6, difficulty = $7 WHERE id = $8 RETURNING *",
-      [name, description, xp, procedure_id, role_id, estimated_duration_days, difficulty, taskId]
+      'UPDATE task SET name = $1, description = $2, xp = $3, procedure_id = $4, role_id = $5, estimated_duration_days = $6, difficulty = $7 WHERE id = $8 RETURNING *',
+      [name, description, xp, procedure_id, role_id, estimated_duration_days, difficulty, taskId],
     );
     return updatedTask.rows[0];
   } catch (error) {
-    console.error("Error al actualizar la tarea:", error);
-    throw new Error("Error al actualizar la tarea: " + error.message);
+    console.error('Error al actualizar la tarea:', error);
+    throw new Error('Error al actualizar la tarea: ' + error.message);
   }
 };
 
@@ -320,10 +320,10 @@ export const updateTaskService = async (
 export const deleteTaskService = async (taskId) => {
   try {
     await getTaskService(taskId); // Ensure task exists
-    await pool.query("DELETE FROM task WHERE id = $1", [taskId]);
+    await pool.query('DELETE FROM task WHERE id = $1', [taskId]);
   } catch (error) {
-    console.error("Error al eliminar la tarea:", error);
-    throw new Error("Error al eliminar la tarea");
+    console.error('Error al eliminar la tarea:', error);
+    throw new Error('Error al eliminar la tarea');
   }
 };
 
@@ -339,62 +339,62 @@ export const deleteTaskService = async (taskId) => {
  */
 export const uploadTaskService = async (clientId, startedProcedureId, taskId, file) => {
   try {
-    if (!file) throw new Error("No se ha subido ningún archivo");
+    if (!file) {throw new Error('No se ha subido ningún archivo');}
 
     const documentUrl = file.location;
 
     // Check if the client has started the procedure
     const procedureCheck = await pool.query(
-      "SELECT * FROM started_procedure WHERE id = $1 AND client_id = $2",
-      [startedProcedureId, clientId]
+      'SELECT * FROM started_procedure WHERE id = $1 AND client_id = $2',
+      [startedProcedureId, clientId],
     );
 
     if (procedureCheck.rowCount === 0) {
-      throw new Error("El procedimiento no ha sido iniciado por este cliente");
+      throw new Error('El procedimiento no ha sido iniciado por este cliente');
     }
 
     const taskCheck = await pool.query(
-      "SELECT * FROM task WHERE id = $1 AND procedure_id = (SELECT procedure_id FROM started_procedure WHERE id = $2)",
-      [taskId, startedProcedureId]
+      'SELECT * FROM task WHERE id = $1 AND procedure_id = (SELECT procedure_id FROM started_procedure WHERE id = $2)',
+      [taskId, startedProcedureId],
     );
 
     if (taskCheck.rowCount === 0) {
-      throw new Error("Tarea no encontrada para este procedimiento");
+      throw new Error('Tarea no encontrada para este procedimiento');
     }
 
     // Check if the task has already been completed or is pending
     const startedTaskCheck = await pool.query(
       "SELECT * FROM started_task WHERE task_id = $1 AND started_procedure_id = $2 AND (status = 'completed' OR status = 'pending')",
-      [taskId, startedProcedureId]
+      [taskId, startedProcedureId],
     );
 
     if (startedTaskCheck.rowCount > 0) {
-      throw new Error("La tarea ya está completada o pendiente");
+      throw new Error('La tarea ya está completada o pendiente');
     }
 
     const roleId = taskCheck.rows[0].role_id;
     const employeeId = await selectEmployeeByRoleService(roleId);
-    if (!employeeId) throw new Error("No se encontró un empleado disponible");
+    if (!employeeId) {throw new Error('No se encontró un empleado disponible');}
 
-    const status = "pending";
+    const status = 'pending';
 
     const task = await pool.query(
       `INSERT INTO started_task 
       (started_procedure_id, task_id, employee_id, status, document_uploaded) 
       VALUES ($1, $2, $3, $4, $5) 
       RETURNING *`,
-      [startedProcedureId, taskId, employeeId, status, documentUrl]
+      [startedProcedureId, taskId, employeeId, status, documentUrl],
     );
 
     await createAndSendNotificationService(
       employeeId,
       `Se te ha asignado la tarea: "${taskCheck.rows[0].name}"`,
-      null
+      null,
     );
 
     return task.rows[0];
   } catch (error) {
-    console.error("Error al subir el documento de la tarea:", error);
+    console.error('Error al subir el documento de la tarea:', error);
     throw new Error(error.message);
   }
 };
@@ -408,14 +408,14 @@ export const uploadTaskService = async (clientId, startedProcedureId, taskId, fi
  */
 export const getTaskService = async (taskId) => {
   try {
-    const result = await pool.query("SELECT * FROM task WHERE id = $1", [taskId]);
+    const result = await pool.query('SELECT * FROM task WHERE id = $1', [taskId]);
     if (result.rowCount === 0) {
       throw new Error(`Tarea con ID ${taskId} no encontrada`);
     }
     return result.rows[0];
   } catch (error) {
-    console.error("Error al obtener la información de la tarea:", error);
-    throw new Error("Error al obtener la información de la tarea: " + error.message);
+    console.error('Error al obtener la información de la tarea:', error);
+    throw new Error('Error al obtener la información de la tarea: ' + error.message);
   }
 };
 
@@ -428,14 +428,14 @@ export const getTaskService = async (taskId) => {
  */
 export const getStartedTaskService = async (startedTaskId) => {
   try {
-    const result = await pool.query("SELECT * FROM started_task WHERE id = $1", [startedTaskId]);
+    const result = await pool.query('SELECT * FROM started_task WHERE id = $1', [startedTaskId]);
     if (result.rowCount === 0) {
       throw new Error(`Tarea iniciada con ID ${startedTaskId} no encontrada`);
     }
     return result.rows[0];
   } catch (error) {
-    console.error("Error al obtener la información de la tarea iniciada:", error);
-    throw new Error("Error al obtener la información de la tarea iniciada: " + error.message);
+    console.error('Error al obtener la información de la tarea iniciada:', error);
+    throw new Error('Error al obtener la información de la tarea iniciada: ' + error.message);
   }
 };
 
@@ -452,11 +452,11 @@ export const getStartedTaskByStatusService = async (startedTaskId, employeeId, e
   const taskQuery = await pool.query(
     `SELECT * FROM started_task
      WHERE id = $1 AND employee_id = $2 AND status = $3`,
-    [startedTaskId, employeeId, expectedStatus]
+    [startedTaskId, employeeId, expectedStatus],
   );
 
   if (taskQuery.rowCount === 0) {
-    throw new Error("Tarea no encontrada o no está pendiente para este empleado");
+    throw new Error('Tarea no encontrada o no está pendiente para este empleado');
   }
 
   return taskQuery.rows[0];
@@ -485,7 +485,7 @@ export const updateStartedTaskStatusService = async (startedTaskId, status, reas
   ]);
 
   if (result.rowCount === 0) {
-    throw new Error("Error al actualizar el estado de la tarea");
+    throw new Error('Error al actualizar el estado de la tarea');
   }
 
   return result.rows[0];

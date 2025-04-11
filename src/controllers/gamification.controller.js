@@ -3,7 +3,7 @@ import {
   getRankingService,
   getEmployeeStatisticsService,
   getLevelProgressionService,
-} from "../services/gamification.service.js";
+} from '../services/gamification.service.js';
 
 /**
  * Retrieves the ranking of employees.
@@ -20,8 +20,8 @@ export const getRanking = async (req, res) => {
     const ranking = await getRankingService();
     res.status(200).json(ranking);
   } catch (error) {
-    console.error("Error al obtener el ranking:", error);
-    res.status(500).json({ message: "Error al obtener el ranking" });
+    console.error('Error al obtener el ranking:', error);
+    res.status(500).json({ message: 'Error al obtener el ranking' });
   }
 };
 
@@ -41,10 +41,10 @@ export const getEmployeeStatistics = async (req, res) => {
     const statistics = await getEmployeeStatisticsService(employeeId);
     res.status(200).json(statistics);
   } catch (error) {
-    console.error("Error al obtener las estadísticas personales:", error);
+    console.error('Error al obtener las estadísticas personales:', error);
     res
       .status(500)
-      .json({ message: "Error al obtener las estadísticas personales" });
+      .json({ message: 'Error al obtener las estadísticas personales' });
   }
 };
 
@@ -63,8 +63,8 @@ export const getGamificationLevels = (req, res) => {
     const levels = getGamificationLevelsService();
     res.status(200).json(levels);
   } catch (error) {
-    console.error("Error al obtener los niveles:", error);
-    res.status(500).json({ message: "Error al obtener los niveles" });
+    console.error('Error al obtener los niveles:', error);
+    res.status(500).json({ message: 'Error al obtener los niveles' });
   }
 };
 
@@ -83,9 +83,9 @@ export const getLevelProgression = async (req, res) => {
     const levelProgression = await getLevelProgressionService(req.user.id);
     res.status(200).json(levelProgression);
   } catch (error) {
-    console.error("Error al obtener la progresión de nivel:", error);
+    console.error('Error al obtener la progresión de nivel:', error);
     res
       .status(500)
-      .json({ message: "Error al obtener la progresión de nivel" });
+      .json({ message: 'Error al obtener la progresión de nivel' });
   }
 };

@@ -1,7 +1,7 @@
-import multer from "multer";
-import multerS3 from "multer-s3";
-import { s3 } from "../databases/s3.js";
-import { AWS_BUCKET_NAME } from "../config/config.js";
+import multer from 'multer';
+import multerS3 from 'multer-s3';
+import { s3 } from '../databases/s3.js';
+import { AWS_BUCKET_NAME } from '../config/config.js';
 
 // Middleware to upload PDF files
 export const uploadPDF = multer({
@@ -15,15 +15,15 @@ export const uploadPDF = multer({
     },
   }),
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === "application/pdf") {
+    if (file.mimetype === 'application/pdf') {
       cb(null, true);
     } else {
-      cb(new Error("Only PDFs are allowed"), false);
+      cb(new Error('Only PDFs are allowed'), false);
     }
   },
 });
 
-// Middleware to upload profile pictures 
+// Middleware to upload profile pictures
 export const uploadProfilePic = multer({
   storage: multerS3({
     s3: s3,
@@ -35,10 +35,10 @@ export const uploadProfilePic = multer({
     },
   }),
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/")) {
+    if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error("Only image files are allowed"), false);
+      cb(new Error('Only image files are allowed'), false);
     }
   },
 });

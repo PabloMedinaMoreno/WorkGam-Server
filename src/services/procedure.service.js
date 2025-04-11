@@ -1,15 +1,15 @@
-import { pool } from "../databases/db.js";
+import { pool } from '../databases/db.js';
 
 /**
  * Retrieves all procedures.
  */
 export const getProceduresService = async () => {
   try {
-    const procedures = await pool.query("SELECT * FROM procedure");
+    const procedures = await pool.query('SELECT * FROM procedure');
     return procedures.rows;
   } catch (error) {
-    console.error("Error al obtener los procedimientos:", error);
-    throw new Error("Error al obtener los procedimientos");
+    console.error('Error al obtener los procedimientos:', error);
+    throw new Error('Error al obtener los procedimientos');
   }
 };
 
@@ -18,13 +18,13 @@ export const getProceduresService = async () => {
  */
 export const getProcedureTasksService = async (procedureId) => {
   try {
-    const procedure = await pool.query("SELECT * FROM procedure WHERE id = $1", [procedureId]);
-    if (procedure.rowCount === 0) throw new Error("Procedimiento no encontrado");
+    const procedure = await pool.query('SELECT * FROM procedure WHERE id = $1', [procedureId]);
+    if (procedure.rowCount === 0) {throw new Error('Procedimiento no encontrado');}
 
-    const tasks = await pool.query("SELECT * FROM task WHERE procedure_id = $1", [procedureId]);
+    const tasks = await pool.query('SELECT * FROM task WHERE procedure_id = $1', [procedureId]);
     return { procedure: procedure.rows[0], tasks: tasks.rows };
   } catch (error) {
-    console.error("Error al obtener las tareas del procedimiento:", error);
+    console.error('Error al obtener las tareas del procedimiento:', error);
     throw new Error(error.message);
   }
 };
@@ -34,16 +34,16 @@ export const getProcedureTasksService = async (procedureId) => {
  */
 export const createProcedureService = async ({ name, description }) => {
   try {
-    const check = await pool.query("SELECT * FROM procedure WHERE name = $1", [name]);
-    if (check.rowCount > 0) throw new Error("Ya existe un procedimiento con este nombre");
+    const check = await pool.query('SELECT * FROM procedure WHERE name = $1', [name]);
+    if (check.rowCount > 0) {throw new Error('Ya existe un procedimiento con este nombre');}
 
     const result = await pool.query(
-      "INSERT INTO procedure (name, description) VALUES ($1, $2) RETURNING *",
-      [name, description]
+      'INSERT INTO procedure (name, description) VALUES ($1, $2) RETURNING *',
+      [name, description],
     );
     return result.rows[0];
   } catch (error) {
-    console.error("Error al crear el procedimiento:", error);
+    console.error('Error al crear el procedimiento:', error);
     throw new Error(error.message);
   }
 };
@@ -53,22 +53,22 @@ export const createProcedureService = async ({ name, description }) => {
  */
 export const updateProcedureService = async (procedureId, { name, description }) => {
   try {
-    const exists = await pool.query("SELECT * FROM procedure WHERE id = $1", [procedureId]);
-    if (exists.rowCount === 0) throw new Error("Procedimiento no encontrado");
+    const exists = await pool.query('SELECT * FROM procedure WHERE id = $1', [procedureId]);
+    if (exists.rowCount === 0) {throw new Error('Procedimiento no encontrado');}
 
     const duplicate = await pool.query(
-      "SELECT * FROM procedure WHERE name = $1 AND id != $2",
-      [name, procedureId]
+      'SELECT * FROM procedure WHERE name = $1 AND id != $2',
+      [name, procedureId],
     );
-    if (duplicate.rowCount > 0) throw new Error("Ya existe un procedimiento con este nombre");
+    if (duplicate.rowCount > 0) {throw new Error('Ya existe un procedimiento con este nombre');}
 
     const result = await pool.query(
-      "UPDATE procedure SET name = $1, description = $2 WHERE id = $3 RETURNING *",
-      [name, description, procedureId]
+      'UPDATE procedure SET name = $1, description = $2 WHERE id = $3 RETURNING *',
+      [name, description, procedureId],
     );
     return result.rows[0];
   } catch (error) {
-    console.error("Error al actualizar el procedimiento:", error);
+    console.error('Error al actualizar el procedimiento:', error);
     throw new Error(error.message);
   }
 };
@@ -78,12 +78,12 @@ export const updateProcedureService = async (procedureId, { name, description })
  */
 export const deleteProcedureService = async (procedureId) => {
   try {
-    const check = await pool.query("SELECT * FROM procedure WHERE id = $1", [procedureId]);
-    if (check.rowCount === 0) throw new Error("Procedimiento no encontrado");
+    const check = await pool.query('SELECT * FROM procedure WHERE id = $1', [procedureId]);
+    if (check.rowCount === 0) {throw new Error('Procedimiento no encontrado');}
 
-    await pool.query("DELETE FROM procedure WHERE id = $1", [procedureId]);
+    await pool.query('DELETE FROM procedure WHERE id = $1', [procedureId]);
   } catch (error) {
-    console.error("Error al eliminar el procedimiento:", error);
+    console.error('Error al eliminar el procedimiento:', error);
     throw new Error(error.message);
   }
 };
@@ -93,21 +93,21 @@ export const deleteProcedureService = async (procedureId) => {
  */
 export const startProcedureService = async (procedureId, clientId) => {
   try {
-    const client = await pool.query("SELECT * FROM client WHERE id = $1", [clientId]);
-    if (client.rowCount === 0) throw new Error("Cliente no encontrado");
+    const client = await pool.query('SELECT * FROM client WHERE id = $1', [clientId]);
+    if (client.rowCount === 0) {throw new Error('Cliente no encontrado');}
 
-    const procedure = await pool.query("SELECT * FROM procedure WHERE id = $1", [procedureId]);
-    if (procedure.rowCount === 0) throw new Error("Procedimiento no encontrado");
+    const procedure = await pool.query('SELECT * FROM procedure WHERE id = $1', [procedureId]);
+    if (procedure.rowCount === 0) {throw new Error('Procedimiento no encontrado');}
 
     const alreadyStarted = await pool.query(
-      "SELECT * FROM started_procedure WHERE procedure_id = $1 AND client_id = $2",
-      [procedureId, clientId]
+      'SELECT * FROM started_procedure WHERE procedure_id = $1 AND client_id = $2',
+      [procedureId, clientId],
     );
-    if (alreadyStarted.rowCount > 0) throw new Error("Ya ha iniciado este procedimiento");
+    if (alreadyStarted.rowCount > 0) {throw new Error('Ya ha iniciado este procedimiento');}
 
     const started = await pool.query(
       "INSERT INTO started_procedure (procedure_id, client_id, status) VALUES ($1, $2, 'pending') RETURNING *",
-      [procedureId, clientId]
+      [procedureId, clientId],
     );
 
     return {
@@ -115,7 +115,7 @@ export const startProcedureService = async (procedureId, clientId) => {
       procedureName: procedure.rows[0].name,
     };
   } catch (error) {
-    console.error("Error al iniciar el procedimiento:", error);
+    console.error('Error al iniciar el procedimiento:', error);
     throw new Error(error.message);
   }
 };
@@ -126,21 +126,21 @@ export const startProcedureService = async (procedureId, clientId) => {
 export const cancelStartedProcedureService = async (startedProcedureId, clientId) => {
   try {
     const started = await pool.query(
-      "SELECT * FROM started_procedure WHERE id = $1 AND client_id = $2",
-      [startedProcedureId, clientId]
+      'SELECT * FROM started_procedure WHERE id = $1 AND client_id = $2',
+      [startedProcedureId, clientId],
     );
-    if (started.rowCount === 0) throw new Error("Procedimiento no encontrado");
+    if (started.rowCount === 0) {throw new Error('Procedimiento no encontrado');}
 
-    await pool.query("DELETE FROM started_procedure WHERE id = $1", [startedProcedureId]);
+    await pool.query('DELETE FROM started_procedure WHERE id = $1', [startedProcedureId]);
 
     const procedure = await pool.query(
-      "SELECT * FROM procedure WHERE id = $1",
-      [started.rows[0].procedure_id]
+      'SELECT * FROM procedure WHERE id = $1',
+      [started.rows[0].procedure_id],
     );
 
     return { procedureName: procedure.rows[0].name };
   } catch (error) {
-    console.error("Error al cancelar el procedimiento:", error);
+    console.error('Error al cancelar el procedimiento:', error);
     throw new Error(error.message);
   }
 };
@@ -156,12 +156,12 @@ export const getMyStartedProceduresService = async (clientId) => {
        FROM started_procedure i 
        JOIN procedure p ON i.procedure_id = p.id 
        WHERE client_id = $1`,
-      [clientId]
+      [clientId],
     );
     return result.rows;
   } catch (error) {
-    console.error("Error al obtener procedimientos iniciados:", error);
-    throw new Error("Error al obtener procedimientos iniciados");
+    console.error('Error al obtener procedimientos iniciados:', error);
+    throw new Error('Error al obtener procedimientos iniciados');
   }
 };
 
@@ -170,22 +170,22 @@ export const getMyStartedProceduresService = async (clientId) => {
  */
 export const createProcedureTaskService = async (
   procedureId,
-  { name, description, xp, role_id, estimated_duration_days, difficulty }
+  { name, description, xp, role_id, estimated_duration_days, difficulty },
 ) => {
   try {
-    const procedure = await pool.query("SELECT * FROM procedure WHERE id = $1", [procedureId]);
-    if (procedure.rowCount === 0) throw new Error("Procedimiento no encontrado");
+    const procedure = await pool.query('SELECT * FROM procedure WHERE id = $1', [procedureId]);
+    if (procedure.rowCount === 0) {throw new Error('Procedimiento no encontrado');}
 
     const task = await pool.query(
       `INSERT INTO task 
         (name, description, xp, procedure_id, role_id, estimated_duration_days, difficulty) 
        VALUES ($1, $2, $3, $4, $5, $6, $7) 
        RETURNING *`,
-      [name, description, xp, procedureId, role_id, estimated_duration_days, difficulty]
+      [name, description, xp, procedureId, role_id, estimated_duration_days, difficulty],
     );
     return task.rows[0];
   } catch (error) {
-    console.error("Error al crear la tarea del procedimiento:", error);
+    console.error('Error al crear la tarea del procedimiento:', error);
     throw new Error(error.message);
   }
 };
@@ -210,8 +210,8 @@ export const getStartedProceduresService = async () => {
     `);
     return result.rows;
   } catch (error) {
-    console.error("Error al obtener procedimientos iniciados:", error);
-    throw new Error("Error al obtener procedimientos iniciados");
+    console.error('Error al obtener procedimientos iniciados:', error);
+    throw new Error('Error al obtener procedimientos iniciados');
   }
 };
 
@@ -220,10 +220,10 @@ export const getStartedProceduresService = async () => {
  */
 export const getStartedProcedureTasksService = async (startedProcedureId) => {
   try {
-    const started = await pool.query("SELECT * FROM started_procedure WHERE id = $1", [
+    const started = await pool.query('SELECT * FROM started_procedure WHERE id = $1', [
       startedProcedureId,
     ]);
-    if (started.rowCount === 0) throw new Error("Procedimiento iniciado no encontrado");
+    if (started.rowCount === 0) {throw new Error('Procedimiento iniciado no encontrado');}
 
     const result = await pool.query(
       `SELECT 
@@ -240,12 +240,12 @@ export const getStartedProcedureTasksService = async (startedProcedureId) => {
        JOIN person e ON it.employee_id = e.id
        WHERE it.started_procedure_id = $1
        ORDER BY it.start_date ASC`,
-      [startedProcedureId]
+      [startedProcedureId],
     );
 
     return result.rows;
   } catch (error) {
-    console.error("Error al obtener tareas del procedimiento iniciado:", error);
+    console.error('Error al obtener tareas del procedimiento iniciado:', error);
     throw new Error(error.message);
   }
 };
@@ -261,21 +261,21 @@ export const getStartedProcedureTasksService = async (startedProcedureId) => {
 export const updateStartedProcedureStatusService = async (startedProcedureId, status) => {
   try {
     const started = await pool.query(
-      "SELECT * FROM started_procedure WHERE id = $1",
-      [startedProcedureId]
+      'SELECT * FROM started_procedure WHERE id = $1',
+      [startedProcedureId],
     );
-    if (started.rowCount === 0) throw new Error("Procedimiento iniciado no encontrado");
+    if (started.rowCount === 0) {throw new Error('Procedimiento iniciado no encontrado');}
 
     const result = await pool.query(
-      "UPDATE started_procedure SET status = $1 WHERE id = $2 RETURNING *",
-      [status, startedProcedureId]
+      'UPDATE started_procedure SET status = $1 WHERE id = $2 RETURNING *',
+      [status, startedProcedureId],
     );
 
-    console.log("Procedimiento iniciado actualizado:", result.rows[0]);
-    
+    console.log('Procedimiento iniciado actualizado:', result.rows[0]);
+
     return result.rows[0];
   } catch (error) {
-    console.error("Error al actualizar el procedimiento iniciado:", error);
+    console.error('Error al actualizar el procedimiento iniciado:', error);
     throw new Error(error.message);
   }
-}
+};

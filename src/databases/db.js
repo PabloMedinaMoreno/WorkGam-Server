@@ -1,28 +1,24 @@
-import pg from "pg";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-
+import pg from 'pg';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import {
-  DB_USER,
-  DB_HOST,
-  DB_DATABASE,
-  DB_PASSWORD,
-  DB_PORT,
-} from "../config/config.js";
+  // DB_USER,
+  // DB_HOST,
+  // DB_DATABASE,
+  // DB_PASSWORD,
+  // DB_PORT,
+  DATABASE_URL,
+  TEST_DATABASE_URL,
+  NODE_ENV,
+} from '../config/config.js';
 
-// Create a new pool to connect to the database
-// This pool is used to interact with the database
-// export const pool = new pg.Pool({
-//   user: DB_USER,
-//   host: DB_HOST,
-//   database: DB_DATABASE,
-//   password: DB_PASSWORD,
-//   port: DB_PORT,
-// });
+// Selecciona la cadena de conexión según el entorno
+const connectionString =
+  NODE_ENV === 'test' ? TEST_DATABASE_URL : DATABASE_URL;
 
 export const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
   ssl: {
     rejectUnauthorized: false,
   },
@@ -30,6 +26,7 @@ export const pool = new pg.Pool({
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 
 /**
  * Connects to the Postgres database using the pool configuration.
@@ -43,36 +40,54 @@ const __dirname = path.dirname(__filename);
 export async function connectDB() {
   try {
     await pool.connect();
-    console.log(">>> Connected to Postgres SQL");
+    console.log('>>> Connected to Postgres SQL');
   } catch (error) {
-    console.error("XXX Error connecting to Postgres", error);
+    console.error('XXX Error connecting to Postgres', error);
   }
 }
 
 /**
- * Sets up the database schema by reading the `schema.sql` and `data.sql` files,
- * replacing the placeholder with the actual database name, and then executing
- * the SQL commands to create tables and indexes.
+ * Establece el schema de la base de datos (crea la estructura de tablas).
  *
  * @async
- * @returns {Promise<void>} Resolves when the schema setup is completed successfully.
- * @throws {Error} If an error occurs during the execution of the schema SQL.
+ * @returns {Promise<void>} Resuelve cuando se crea la estructura de las tablas.
+ * @throws {Error} Si ocurre un error durante la ejecución del SQL.
  */
-export async function setupDatabase() {
+export async function setupDatabaseSchema() {
   try {
-    console.log(`>>> Checking and setting up database`);
-    // Read the schema.sql file and replace the placeholder with the database name
-    const schemaPath = path.resolve(__dirname, "schema.sql");
-    const dataPath = path.resolve(__dirname, "data.sql");
-    let schema = fs.readFileSync(schemaPath, "utf8");
-    const data = fs.readFileSync(dataPath, "utf8");
-
-    // Execute the schema.sql file
-    // This creates the tables and indexes in the database
-    await pool.query(schema);
-    await pool.query(data);
-    console.log(">>> Database schema applied successfully");
+    console.log('>>> Setting up database schema...');
+    const schemaPath = path.resolve(__dirname, 'schema.sql');
+    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+    await pool.query(schemaSql);
+    console.log('>>> Database schema applied successfully');
   } catch (error) {
-    console.error("XXX Error executing schema.sql", error);
+    console.error('XXX Error applying database schema:', error);
+    throw error;
   }
 }
+
+/**
+ * Inserta datos en las tablas de la base de datos.
+ *
+ * @async
+ * @returns {Promise<void>} Resuelve cuando se insertan los datos.
+ * @throws {Error} Si ocurre un error durante la ejecución del SQL.
+ */
+async function insertDatabaseData() {
+  try {
+    console.log('>>> Inserting data into database tables...');
+    const dataPath = path.resolve(__dirname, 'data.sql');
+    const dataSql = fs.readFileSync(dataPath, 'utf8');
+    await pool.query(dataSql);
+    console.log('>>> Data inserted successfully');
+  } catch (error) {
+    console.error('XXX Error inserting data into database:', error);
+    throw error;
+  }
+}
+
+export async function initializeDatabase() {
+  await setupDatabaseSchema();
+  await insertDatabaseData();
+}
+

@@ -131,3 +131,12 @@ CREATE TABLE IF NOT EXISTS notification (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (person_id) REFERENCES person(id) ON DELETE CASCADE
 );
+
+-- Crear tabla de tokens de restablecimiento de contraseña
+CREATE TABLE IF NOT EXISTS password_reset_token (
+  id SERIAL PRIMARY KEY,
+  person_id INT NOT NULL,
+  token VARCHAR(255) NOT NULL UNIQUE,
+  expires_at TIMESTAMP NOT NULL,
+  FOREIGN KEY (person_id) REFERENCES person(id) ON DELETE CASCADE
+);

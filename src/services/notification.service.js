@@ -1,4 +1,4 @@
-import { pool } from "../databases/db.js";
+import { pool } from '../databases/db.js';
 
 /**
  * Retrieves notifications for a given user.
@@ -10,13 +10,13 @@ import { pool } from "../databases/db.js";
 export const getNotificationsService = async (personId) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM notification WHERE person_id = $1 ORDER BY created_at DESC",
-      [personId]
+      'SELECT * FROM notification WHERE person_id = $1 ORDER BY created_at DESC',
+      [personId],
     );
     return result.rows;
   } catch (error) {
-    console.error("Error al obtener las notificaciones en el servicio:", error);
-    throw new Error("Error al obtener las notificaciones");
+    console.error('Error al obtener las notificaciones en el servicio:', error);
+    throw new Error('Error al obtener las notificaciones');
   }
 };
 
@@ -30,20 +30,20 @@ export const getNotificationsService = async (personId) => {
 export const markNotificationAsReadService = async (notificationId) => {
   try {
     const result = await pool.query(
-      "UPDATE notification SET is_read = TRUE WHERE id = $1 RETURNING *",
-      [notificationId]
+      'UPDATE notification SET is_read = TRUE WHERE id = $1 RETURNING *',
+      [notificationId],
     );
     if (result.rowCount === 0) {
-      throw new Error("Notificación no encontrada");
+      throw new Error('Notificación no encontrada');
     }
     return result.rows[0];
   } catch (error) {
     console.error(
-      "Error al marcar la notificación como leída en el servicio:",
-      error
+      'Error al marcar la notificación como leída en el servicio:',
+      error,
     );
     throw new Error(
-      error.message || "Error al marcar la notificación como leída"
+      error.message || 'Error al marcar la notificación como leída',
     );
   }
 };
@@ -58,16 +58,16 @@ export const markNotificationAsReadService = async (notificationId) => {
 export const markAllNotificationsAsReadService = async (personId) => {
   try {
     const result = await pool.query(
-      "UPDATE notification SET is_read = TRUE WHERE person_id = $1 RETURNING *",
-      [personId]
+      'UPDATE notification SET is_read = TRUE WHERE person_id = $1 RETURNING *',
+      [personId],
     );
     return result.rows;
   } catch (error) {
     console.error(
-      "Error al marcar todas las notificaciones como leídas en el servicio:",
-      error
+      'Error al marcar todas las notificaciones como leídas en el servicio:',
+      error,
     );
-    throw new Error("Error al marcar todas las notificaciones como leídas");
+    throw new Error('Error al marcar todas las notificaciones como leídas');
   }
 };
 
@@ -83,20 +83,20 @@ export const createAndSendNotificationService = async (
   personId,
   message,
   io = null,
-  socketId = null
+  socketId = null,
 ) => {
   const result = await pool.query(
-    "INSERT INTO notification (person_id, message) VALUES ($1, $2) RETURNING *",
-    [personId, message]
+    'INSERT INTO notification (person_id, message) VALUES ($1, $2) RETURNING *',
+    [personId, message],
   );
   const notification = result.rows[0];
 
   // If io and socketId are provided, send the notification in real-time
   await sendWebSocketNotificationService(
-    "new_notification",
+    'new_notification',
     notification,
     io,
-    socketId
+    socketId,
   );
 
   return notification;
@@ -115,7 +115,7 @@ export const sendLevelUpNotificationService = async (
   currentLevel,
   nextLevel,
   io,
-  socketId
+  socketId,
 ) => {
   // We send a level up event to the employee
   const levelData = {
@@ -135,14 +135,14 @@ export const sendLevelUpNotificationService = async (
     employeeId,
     `¡Felicidades! Has subido de nivel a ${nextLevel.name}(${nextLevel.pointsRequired} XP)`,
     io,
-    socketId
+    socketId,
   );
   // We send the level up event to the employee
   await sendWebSocketNotificationService(
-    "level_up_notification",
+    'level_up_notification',
     levelData,
     io,
-    socketId
+    socketId,
   );
 };
 
@@ -159,4 +159,4 @@ export const sendWebSocketNotificationService = async (notificationType, notific
   if (io && socketId) {
     io.to(socketId).emit(notificationType, notificationData);
   }
-}
+};

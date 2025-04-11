@@ -10,8 +10,8 @@ import {
   createProcedureTaskService,
   getStartedProceduresService,
   getStartedProcedureTasksService,
-} from "../services/procedure.service.js";
-import { createAndSendNotificationService } from "../services/notification.service.js";
+} from '../services/procedure.service.js';
+import { createAndSendNotificationService } from '../services/notification.service.js';
 
 /**
  * Retrieves all procedures.
@@ -29,7 +29,7 @@ export const getProcedures = async (req, res) => {
     res.status(200).json(procedures);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error al recuperar los procedimientos" });
+    res.status(500).json({ message: 'Error al recuperar los procedimientos' });
   }
 };
 
@@ -51,10 +51,10 @@ export const getProcedureTasks = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     console.error(error);
-    if (error.message === "Procedimiento no encontrado") {
+    if (error.message === 'Procedimiento no encontrado') {
       return res.status(404).json({ message: error.message });
     }
-    res.status(500).json({ message: "Error al recuperar las tareas del procedimiento" });
+    res.status(500).json({ message: 'Error al recuperar las tareas del procedimiento' });
   }
 };
 
@@ -77,10 +77,10 @@ export const createProcedure = async (req, res) => {
     res.status(201).json(procedure);
   } catch (error) {
     console.error(error);
-    if (error.message === "Ya existe un procedimiento con este nombre") {
+    if (error.message === 'Ya existe un procedimiento con este nombre') {
       return res.status(409).json({ message: error.message });
     }
-    res.status(500).json({ message: "Error al crear el procedimiento" });
+    res.status(500).json({ message: 'Error al crear el procedimiento' });
   }
 };
 
@@ -104,12 +104,12 @@ export const updateProcedure = async (req, res) => {
     res.status(200).json(updatedProcedure);
   } catch (error) {
     console.error(error);
-    if (error.message === "Procedimento no encontrado") {
+    if (error.message === 'Procedimento no encontrado') {
       return res.status(404).json({ message: error.message });
-    } else if (error.message === "Ya existe un procedimiento con este nombre") {
+    } else if (error.message === 'Ya existe un procedimiento con este nombre') {
       return res.status(409).json({ message: error.message });
     }
-    res.status(500).json({ message: "Error al actualizar el procedimiento" });
+    res.status(500).json({ message: 'Error al actualizar el procedimiento' });
   }
 };
 
@@ -128,13 +128,13 @@ export const deleteProcedure = async (req, res) => {
   const { procedureId } = req.params;
   try {
     await deleteProcedureService(procedureId);
-    res.status(204).json({ message: "Procedimiento eliminado correctamente" });
+    res.status(204).json({ message: 'Procedimiento eliminado correctamente' });
   } catch (error) {
     console.error(error);
-    if (error.message === "Procedimiento no encontrado") {
+    if (error.message === 'Procedimiento no encontrado') {
       return res.status(404).json({ message: error.message });
     }
-    res.status(500).json({ message: "Error al eliminar el procedimiento" });
+    res.status(500).json({ message: 'Error al eliminar el procedimiento' });
   }
 };
 
@@ -161,21 +161,21 @@ export const startProcedure = async (req, res) => {
       clientId,
       `Ha iniciado el procedimiento "${result.procedureName}"`,
       io,
-      socketId
+      socketId,
     );
     res.status(201).json(result.startedProcedure);
   } catch (error) {
-    console.error("Error al iniciar el procedimiento:", error);
+    console.error('Error al iniciar el procedimiento:', error);
     if (
-      error.message === "Cliente no encontrado" ||
-      error.message === "Procedimiento no encontrado"
+      error.message === 'Cliente no encontrado' ||
+      error.message === 'Procedimiento no encontrado'
     ) {
-      return res.status(404).json({ message: "Cliente o procedimiento no encontrado" });
+      return res.status(404).json({ message: 'Cliente o procedimiento no encontrado' });
     }
-    if (error.message === "Ya ha iniciado este procedimiento") {
+    if (error.message === 'Ya ha iniciado este procedimiento') {
       return res.status(409).json({ message: error.message });
     }
-    res.status(500).json({ message: "Error al iniciar el procedimiento" });
+    res.status(500).json({ message: 'Error al iniciar el procedimiento' });
   }
 };
 
@@ -201,15 +201,15 @@ export const cancelStartedProcedure = async (req, res) => {
       clientId,
       `Ha cancelado el procedimiento "${result.procedureName}"`,
       io,
-      socketId
+      socketId,
     );
-    res.status(200).json({ message: "Procedimiento cancelado correctamente" });
+    res.status(200).json({ message: 'Procedimiento cancelado correctamente' });
   } catch (error) {
     console.error(error);
-    if (error.message === "Procedimiento no encontrado") {
+    if (error.message === 'Procedimiento no encontrado') {
       return res.status(404).json({ message: error.message });
     }
-    res.status(500).json({ message: "Error al cancelar el procedimiento" });
+    res.status(500).json({ message: 'Error al cancelar el procedimiento' });
   }
 };
 
@@ -230,7 +230,7 @@ export const getMyStartedProcedures = async (req, res) => {
     res.status(200).json(startedProcedures);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error al recuperar sus procedimientos iniciados" });
+    res.status(500).json({ message: 'Error al recuperar sus procedimientos iniciados' });
   }
 };
 
@@ -253,10 +253,10 @@ export const createProcedureTask = async (req, res) => {
     res.status(201).json(task);
   } catch (error) {
     console.error(error);
-    if (error.message === "Procedimiento no encontrado") {
+    if (error.message === 'Procedimiento no encontrado') {
       return res.status(404).json({ message: error.message });
     }
-    res.status(500).json({ message: "Error al crear la tarea" });
+    res.status(500).json({ message: 'Error al crear la tarea' });
   }
 };
 
@@ -275,8 +275,8 @@ export const getStartedProcedures = async (req, res) => {
     const startedProcedures = await getStartedProceduresService();
     res.status(200).json(startedProcedures);
   } catch (error) {
-    console.error("Error al recuperar los procedimientos iniciados:", error);
-    res.status(500).json({ message: "Error al recuperar los procedimientos iniciados" });
+    console.error('Error al recuperar los procedimientos iniciados:', error);
+    res.status(500).json({ message: 'Error al recuperar los procedimientos iniciados' });
   }
 };
 
@@ -297,10 +297,10 @@ export const getStartedProcedureTasks = async (req, res) => {
     const tasks = await getStartedProcedureTasksService(startedProcedureId);
     res.status(200).json(tasks);
   } catch (error) {
-    console.error("Error al recuperar las tareas del procedimiento iniciado:", error);
-    if (error.message === "Procedimiento iniciado no encontrado") {
+    console.error('Error al recuperar las tareas del procedimiento iniciado:', error);
+    if (error.message === 'Procedimiento iniciado no encontrado') {
       return res.status(404).json({ message: error.message });
     }
-    res.status(500).json({ message: "Error al recuperar las tareas del procedimiento iniciado" });
+    res.status(500).json({ message: 'Error al recuperar las tareas del procedimiento iniciado' });
   }
 };

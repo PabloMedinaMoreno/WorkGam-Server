@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Schema for creating a role.
@@ -9,8 +9,8 @@ import { z } from "zod";
  * @property {string} description - The role's description.
  */
 export const createRoleSchema = z.object({
-  name: z.string().min(1, { message: "El nombre es requerido" }),
-  description: z.string().min(1, { message: "La descripción es requerida" }),
+  name: z.string().min(1, { message: 'El nombre es requerido' }),
+  description: z.string().min(1, { message: 'La descripción es requerida' }),
 });
 
 /**
@@ -22,6 +22,6 @@ export const createRoleSchema = z.object({
  * @property {string} description - The role's description.
  */
 export const updateRoleSchema = z.object({
-  name: z.string().min(1, { message: "El nombre es requerido" }),
-  description: z.string().min(1, { message: "La descripción es requerida" }),
+  name: z.string().min(1, { message: 'El nombre es requerido' }),
+  description: z.string().min(1, { message: 'La descripción es requerida' }),
 });

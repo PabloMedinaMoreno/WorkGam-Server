@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Schema for user registration (signup).
@@ -12,12 +12,12 @@ import { z } from "zod";
  * @property {string} [phone] - The optional phone number of the user.
  */
 export const signupSchema = z.object({
-  username: z.string().min(1, { message: "El nombre de usuario es requerido" }),
-  email: z.string().email({ message: "El correo electrónico debe ser válido" }),
+  username: z.string().min(1, { message: 'El nombre de usuario es requerido' }),
+  email: z.string().email({ message: 'El correo electrónico debe ser válido' }),
   password: z
     .string()
-    .min(5, { message: "La contraseña debe tener al menos 5 caracteres" }),
-  gender: z.enum(["male", "female"], {
+    .min(5, { message: 'La contraseña debe tener al menos 5 caracteres' }),
+  gender: z.enum(['male', 'female'], {
     errorMap: () => ({ message: "El género debe ser 'male' o 'female'" }),
   }),
   phone: z.string().optional(),
@@ -32,8 +32,8 @@ export const signupSchema = z.object({
  * @property {string} password - The password of the user.
  */
 export const loginSchema = z.object({
-  email: z.string().email({ message: "El correo electrónico debe ser válido" }),
-  password: z.string().min(1, { message: "La contraseña es requerida" }),
+  email: z.string().email({ message: 'El correo electrónico debe ser válido' }),
+  password: z.string().min(1, { message: 'La contraseña es requerida' }),
 });
 
 /**
@@ -46,8 +46,8 @@ export const loginSchema = z.object({
  * @property {string} [phone] - The optional phone number of the user.
  */
 export const updateProfileSchema = z.object({
-  username: z.string().min(1, { message: "El nombre de usuario es requerido" }),
-  email: z.string().email({ message: "El correo electrónico debe ser válido" }),
+  username: z.string().min(1, { message: 'El nombre de usuario es requerido' }),
+  email: z.string().email({ message: 'El correo electrónico debe ser válido' }),
   phone: z.string().optional(),
 });
 
@@ -64,23 +64,21 @@ export const changePasswordSchema = z
   .object({
     oldPassword: z
       .string()
-      .min(1, { message: "La contraseña actual es requerida" }),
-    newPassword: z
-      .string()
-      .min(5, {
-        message: "La nueva contraseña debe tener al menos 5 caracteres",
-      }),
+      .min(1, { message: 'La contraseña actual es requerida' }),
+    newPassword: z.string().min(5, {
+      message: 'La nueva contraseña debe tener al menos 5 caracteres',
+    }),
     confirmPassword: z
       .string()
-      .min(1, { message: "La confirmación de la contraseña es requerida" }),
+      .min(1, { message: 'La confirmación de la contraseña es requerida' }),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Las contraseñas no coinciden",
-    path: ["confirmPassword"],
+    message: 'Las contraseñas no coinciden',
+    path: ['confirmPassword'],
   })
   .refine((data) => data.oldPassword !== data.newPassword, {
-    message: "La nueva contraseña debe ser diferente a la contraseña actual",
-    path: ["newPassword"],
+    message: 'La nueva contraseña debe ser diferente a la contraseña actual',
+    path: ['newPassword'],
   });
 
 /**
@@ -93,9 +91,33 @@ export const changePasswordSchema = z
  * @property {string} password - The admin's password.
  */
 export const createAdminSchema = z.object({
-  username: z.string().min(1, { message: "El nombre de usuario es requerido" }),
-  email: z.string().email({ message: "El correo electrónico debe ser válido" }),
+  username: z.string().min(1, { message: 'El nombre de usuario es requerido' }),
+  email: z.string().email({ message: 'El correo electrónico debe ser válido' }),
   password: z
     .string()
-    .min(5, { message: "La contraseña debe tener al menos 5 caracteres" }),
+    .min(5, { message: 'La contraseña debe tener al menos 5 caracteres' }),
+});
+
+/**
+ * Schema for a forgot password request.
+ * Validates that a valid email address is provided.
+ *
+ * @typedef {Object} ForgotPasswordData
+ * @property {string} email - The user's email address.
+ */
+export const forgotPasswordSchema = z.object({
+  email: z.string().email({ message: 'A valid email is required' }),
+});
+
+/**
+ * Schema for a reset password request.
+ * Validates that the new password is at least 6 characters long.
+ *
+ * @typedef {Object} ResetPasswordData
+ * @property {string} password - The new password.
+ */
+export const resetPasswordSchema = z.object({
+  password: z
+    .string()
+    .min(6, { message: 'The password must be at least 6 characters long' }),
 });

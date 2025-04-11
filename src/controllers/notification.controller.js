@@ -2,7 +2,7 @@ import {
   getNotificationsService,
   markNotificationAsReadService,
   markAllNotificationsAsReadService,
-} from "../services/notification.service.js";
+} from '../services/notification.service.js';
 
 /**
  * Controller to retrieve notifications for the authenticated user.
@@ -16,8 +16,8 @@ export const getNotifications = async (req, res) => {
     const notifications = await getNotificationsService(personId);
     res.status(200).json(notifications);
   } catch (error) {
-    console.error("Error in getNotifications controller:", error);
-    res.status(500).json({ message: error.message || "Error al obtener las notificaciones" });
+    console.error('Error in getNotifications controller:', error);
+    res.status(500).json({ message: error.message || 'Error al obtener las notificaciones' });
   }
 };
 
@@ -33,11 +33,11 @@ export const markNotificationAsRead = async (req, res) => {
     const updatedNotification = await markNotificationAsReadService(notificationId);
     res.status(200).json(updatedNotification);
   } catch (error) {
-    console.error("Error in markNotificationAsRead controller:", error);
-    if (error.message === "Notificación no encontrada") {
+    console.error('Error in markNotificationAsRead controller:', error);
+    if (error.message === 'Notificación no encontrada') {
       return res.status(404).json({ message: error.message });
     }
-    res.status(500).json({ message: error.message || "Error al marcar la notificación como leída" });
+    res.status(500).json({ message: error.message || 'Error al marcar la notificación como leída' });
   }
 };
 
@@ -53,7 +53,7 @@ export const markAllNotificationsAsRead = async (req, res) => {
     const updatedNotifications = await markAllNotificationsAsReadService(personId);
     res.status(200).json(updatedNotifications);
   } catch (error) {
-    console.error("Error in markAllNotificationsAsRead controller:", error);
-    res.status(500).json({ message: error.message || "Error al marcar todas las notificaciones como leídas" });
+    console.error('Error in markAllNotificationsAsRead controller:', error);
+    res.status(500).json({ message: error.message || 'Error al marcar todas las notificaciones como leídas' });
   }
 };

@@ -3,7 +3,7 @@ import {
   getWorkersService,
   updateWorkerService,
   deleteWorkerService,
-} from "../services/worker.service.js";
+} from '../services/worker.service.js';
 
 /**
  * Creates a new worker.
@@ -21,8 +21,8 @@ export const createWorker = async (req, res) => {
     const worker = await createWorkerService({ username, email, password, gender, phone, role_id });
     res.status(201).json(worker);
   } catch (error) {
-    console.error("Error al crear el trabajador:", error);
-    res.status(500).json({ message: error.message || "Error al crear el trabajador" });
+    console.error('Error al crear el trabajador:', error);
+    res.status(500).json({ message: error.message || 'Error al crear el trabajador' });
   }
 };
 
@@ -41,8 +41,8 @@ export const getWorkers = async (req, res) => {
     const workers = await getWorkersService();
     res.status(200).json(workers);
   } catch (error) {
-    console.error("Error al obtener los trabajadores:", error);
-    res.status(500).json({ message: error.message || "Error al obtener los trabajadores" });
+    console.error('Error al obtener los trabajadores:', error);
+    res.status(500).json({ message: error.message || 'Error al obtener los trabajadores' });
   }
 };
 
@@ -63,8 +63,8 @@ export const updateWorker = async (req, res) => {
     const worker = await updateWorkerService(workerId, { username, email, role_id, phone });
     res.status(200).json(worker);
   } catch (error) {
-    console.error("Error al actualizar el trabajador:", error);
-    res.status(500).json({ message: error.message || "Error al actualizar el trabajador" });
+    console.error('Error al actualizar el trabajador:', error);
+    res.status(500).json({ message: error.message || 'Error al actualizar el trabajador' });
   }
 };
 
@@ -82,9 +82,9 @@ export const deleteWorker = async (req, res) => {
   try {
     const { workerId } = req.params;
     await deleteWorkerService(workerId);
-    res.status(204).json({ message: "Trabajador eliminado correctamente" });
+    res.status(204).json({ message: 'Trabajador eliminado correctamente' });
   } catch (error) {
-    console.error("Error al eliminar el trabajador:", error);
-    res.status(500).json({ message: error.message || "Error al eliminar el trabajador" });
+    console.error('Error al eliminar el trabajador:', error);
+    res.status(500).json({ message: error.message || 'Error al eliminar el trabajador' });
   }
 };

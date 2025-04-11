@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Schema for accepting a task.
@@ -8,7 +8,7 @@ import { z } from "zod";
  * @property {string} socketId - The socket ID of the client for real-time notifications.
  */
 export const acceptTaskSchema = z.object({
-  socketId: z.string().min(1, { message: "El socketId es obligatorio" }),
+  socketId: z.string().min(1, { message: 'El socketId es obligatorio' }),
 });
 
 /**
@@ -22,8 +22,8 @@ export const acceptTaskSchema = z.object({
 export const rejectTaskSchema = z.object({
   reason: z
     .string()
-    .min(1, { message: "El motivo del rechazo es obligatorio." }),
-  socketId: z.string().min(1, { message: "El socketId es obligatorio." }),
+    .min(1, { message: 'El motivo del rechazo es obligatorio.' }),
+  socketId: z.string().min(1, { message: 'El socketId es obligatorio.' }),
 });
 
 /**
@@ -40,31 +40,31 @@ export const rejectTaskSchema = z.object({
  * @property {"easy" | "medium" | "hard"} difficulty - The difficulty level of the task.
  */
 export const updateTaskSchema = z.object({
-  name: z.string().min(1, { message: "El nombre de la tarea es obligatorio." }),
+  name: z.string().min(1, { message: 'El nombre de la tarea es obligatorio.' }),
   description: z
     .string()
-    .min(1, { message: "La descripción de la tarea es obligatoria." }),
+    .min(1, { message: 'La descripción de la tarea es obligatoria.' }),
   xp: z.preprocess(
     (val) => Number(val),
-    z.number({ invalid_type_error: "El XP debe ser un número válido." })
+    z.number({ invalid_type_error: 'El XP debe ser un número válido.' }),
   ),
   procedure_id: z.preprocess(
     (val) => Number(val),
     z.number({
-      invalid_type_error: "El ID del procedimiento debe ser un número válido.",
-    })
+      invalid_type_error: 'El ID del procedimiento debe ser un número válido.',
+    }),
   ),
   role_id: z.preprocess(
     (val) => Number(val),
-    z.number({ invalid_type_error: "El role_id debe ser un número válido." })
+    z.number({ invalid_type_error: 'El role_id debe ser un número válido.' }),
   ),
   estimated_duration_days: z.preprocess(
     (val) => Number(val),
     z.number({
-      invalid_type_error: "La duración estimada debe ser un número válido.",
-    })
+      invalid_type_error: 'La duración estimada debe ser un número válido.',
+    }),
   ),
-  difficulty: z.enum(["easy", "medium", "hard"], {
+  difficulty: z.enum(['easy', 'medium', 'hard'], {
     errorMap: () => ({
       message: "El nivel de dificultad debe ser 'easy', 'medium' o 'hard'.",
     }),

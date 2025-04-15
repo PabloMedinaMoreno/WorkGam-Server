@@ -28,7 +28,7 @@ const router = Router();
 
 router.use(authRequired);
 
-router.get('/', verifyRole(['Empleado', 'Cliente']), getProcedures);
+router.get('/', verifyRole(['Empleado', 'Cliente', 'Administrador']), getProcedures);
 router.post(
   '/',
   verifyRole(['Administrador']),
@@ -45,7 +45,7 @@ router.delete('/:procedureId', verifyRole(['Administrador']), deleteProcedure);
 
 router.get(
   '/:procedureId/tasks',
-  verifyRole(['Empleado', 'Cliente']),
+  verifyRole(['Empleado', 'Cliente', 'Administrador']),
   getProcedureTasks,
 );
 router.post(

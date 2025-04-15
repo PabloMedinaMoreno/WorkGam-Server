@@ -2,6 +2,8 @@ import {
   getNotificationsService,
   markNotificationAsReadService,
   markAllNotificationsAsReadService,
+  deleteNotificationService,
+  deleteAllNotificationsService,
 } from '../services/notification.service.js';
 
 /**
@@ -57,3 +59,42 @@ export const markAllNotificationsAsRead = async (req, res) => {
     res.status(500).json({ message: error.message || 'Error al marcar todas las notificaciones como leídas' });
   }
 };
+
+/**
+ * Controller to delete a specific notification.
+ *
+ * @param {Object} req - The HTTP request object. Expects req.params.notificationId to contain the notification's ID.
+ * @param {Object} res - The HTTP response object.
+ */
+export const deleteNotification = async (req, res) => {
+  try {
+    const { notificationId } = req.params;
+    const deletedNotification = await deleteNotificationService(notificationId);
+    res.status(200).json(deletedNotification);
+  } catch (error) {
+    console.error('Error in deleteNotification controller:', error);
+    if (error.message === 'Notificación no encontrada') {
+      return res.status(404).json({ message: error.message });
+    }
+    res.status(500).json({ message: error.message || 'Error al eliminar la notificación' });
+  }
+}
+
+/**
+ * Controller to delete all notifications for the authenticated user.
+ * 
+ * @param {Object} req - The HTTP request object. Expects req.user.id to contain the user's ID.
+ * @param {Object} res - The HTTP response object.
+ */
+export const deleteAllNotifications = async (req, res) => {
+  try {
+    const personId = req.user.id;
+    const deletedNotifications = await deleteAllNotificationsService(personId);
+    res.status(200).json(deletedNotifications);
+  } catch (error) {
+    console.error('Error in deleteAllNotifications controller:', error);
+    res.status(500).json({ message: error.message || 'Error al eliminar todas las notificaciones' });
+  }
+};
+
+

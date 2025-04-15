@@ -17,9 +17,6 @@ import {
 import { authRequired, verifyRole } from '../middlewares/validateToken.js';
 import { validateSchema } from '../middlewares/validateSchema.js';
 import { uploadPDF } from '../middlewares/multer.js';
-import { getEmployeeRolesService } from '../services/role.service.js';
-
-const employeeRoles = await getEmployeeRolesService();
 
 const router = Router();
 
@@ -39,19 +36,19 @@ router.put(
 );
 router.delete('/:taskId', verifyRole(['Administrador']), deleteTask);
 
-router.get('/', verifyRole(employeeRoles), getTasks);
-router.get('/pending', verifyRole(employeeRoles), getPendingTasks);
-router.get('/completed', verifyRole(employeeRoles), getCompletedTasks);
+router.get('/', verifyRole(['Empleado']), getTasks);
+router.get('/pending', verifyRole(['Empleado']), getPendingTasks);
+router.get('/completed', verifyRole(['Empleado']), getCompletedTasks);
 
 router.put(
   '/accept/:startedTaskId',
-  verifyRole(employeeRoles),
+  verifyRole(['Empleado']),
   validateSchema(acceptTaskSchema),
   acceptTask,
 );
 router.put(
   '/reject/:startedTaskId',
-  verifyRole(employeeRoles),
+  verifyRole(['Empleado']),
   validateSchema(rejectTaskSchema),
   rejectTask,
 );

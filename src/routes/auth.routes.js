@@ -21,9 +21,6 @@ import {
 import { authRequired, verifyRole } from '../middlewares/validateToken.js';
 import { uploadProfilePic } from '../middlewares/multer.js';
 import { validateSchema } from '../middlewares/validateSchema.js';
-// import { getEmployeeRolesService } from "../services/role.service.js";
-
-// const employeeRoles = await getEmployeeRolesService();
 
 const router = Router();
 
@@ -35,9 +32,8 @@ router.post('/forgot-password', validateSchema(forgotPasswordSchema), forgotPass
 router.post('/reset-password/:token', validateSchema(resetPasswordSchema), resetPassword);
 
 // Protected routes
-
 router.use(authRequired);
-router.use(verifyRole(['Empleado', 'Cliente'])); // Allow access to employees and clients
+router.use(verifyRole(['Administrador', 'Empleado', 'Cliente'])); // Allow access to admins, employees, and clients
 
 router.get('/profile', profile);
 router.put('/profile', validateSchema(updateProfileSchema), updateProfile);

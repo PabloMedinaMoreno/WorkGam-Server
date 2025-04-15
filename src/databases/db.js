@@ -37,7 +37,7 @@ const __dirname = path.dirname(__filename);
  * @returns {Promise<void>} Resolves if the connection is successful.
  * @throws {Error} If an error occurs while connecting to the database.
  */
-export async function connectDB() {
+export async function checkDBConnection() {
   try {
     await pool.connect();
     console.log('>>> Connected to Postgres SQL');

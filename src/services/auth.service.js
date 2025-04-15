@@ -108,7 +108,7 @@ export const loginService = async ({ email, password }) => {
     // Create the token
     const token = await createAccessToken({
       id: user.id,
-      role: user.role === 'Cliente' ? 'Cliente' : 'Empleado',
+      role: user.role === 'Administrador' ? 'Administrador' : user.role === 'Cliente' ? 'Cliente' : 'Empleado',
     });
     const userData = {
       id: user.id,

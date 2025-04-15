@@ -8,18 +8,16 @@ import {
   getLevelProgression,
 } from '../controllers/gamification.controller.js';
 import { authRequired, verifyRole } from '../middlewares/validateToken.js';
-import { getEmployeeRolesService } from '../services/role.service.js';
-
-const employeeRoles = await getEmployeeRolesService();
 
 const router = Router();
 
 router.use(authRequired);
+router.use(verifyRole(['Administrador', 'Empleado'])); // Allow access to admins and employees
 
 // Only employees can access these routes
-router.get('/ranking', verifyRole(employeeRoles), getRanking);
-router.get('/statistics/:employeeId', verifyRole(employeeRoles), getEmployeeStatistics);
-router.get('/levels', verifyRole(employeeRoles), getGamificationLevels);
-router.get('/level-progression', verifyRole(employeeRoles), getLevelProgression);
+router.get('/ranking', getRanking);
+router.get('/statistics/:employeeId', getEmployeeStatistics);
+router.get('/levels', getGamificationLevels);
+router.get('/level-progression', getLevelProgression);
 
 export default router;

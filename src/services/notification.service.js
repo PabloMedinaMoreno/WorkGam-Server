@@ -160,3 +160,55 @@ export const sendWebSocketNotificationService = async (notificationType, notific
     io.to(socketId).emit(notificationType, notificationData);
   }
 };
+
+
+/**
+ * Deletes a notification by its ID.
+ * @param {*} notificationId - The ID of the notification to delete.
+ * @returns {Promise<void>} A promise that resolves when the notification is deleted.
+ * @throws {Error} Throws an error if there is an issue deleting the notification.
+ */
+export const deleteNotificationService = async (notificationId) => {
+  try {
+    const result = await pool.query(
+      'DELETE FROM notification WHERE id = $1 RETURNING *',
+      [notificationId],
+    );
+    if (result.rowCount === 0) {
+      throw new Error('Notificación no encontrada');
+    }
+  } catch (error) {
+    console.error('Error al eliminar la notificación en el servicio:', error);
+    throw new Error('Error al eliminar la notificación');
+  }
+
+  // If the notification was deleted successfully, return a success message
+  return { message: 'Notificación eliminada correctamente' };
+}
+
+/**
+ * Deletes all notifications for a given user.
+ * @param {*} personId - The ID of the user.
+ * @returns {Promise<void>} A promise that resolves when all notifications are deleted.
+ * @throws {Error} Throws an error if there is an issue deleting the notifications.
+ */
+export const deleteAllNotificationsService = async (personId) => {
+  try {
+    const result = await pool.query(
+      'DELETE FROM notification WHERE person_id = $1 RETURNING *',
+      [personId],
+    );
+    if (result.rowCount === 0) {
+      throw new Error('No se encontraron notificaciones para eliminar');
+    }
+  } catch (error) {
+    console.error(
+      'Error al eliminar todas las notificaciones en el servicio:',
+      error,
+    );
+    throw new Error('Error al eliminar todas las notificaciones');
+  }
+
+  // If the notifications were deleted successfully, return a success message
+  return { message: 'Todas las notificaciones eliminadas correctamente' };
+}

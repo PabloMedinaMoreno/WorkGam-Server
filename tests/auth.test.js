@@ -1,12 +1,10 @@
 import request from 'supertest';
 import app from '../src/app.js';
-import { pool, connectDB, setupDatabaseSchema } from '../src/databases/db.js';
-
+import { pool, setupDatabaseSchema, checkDBConnection } from '../src/databases/db.js';
 const baseUrl = '/api/auth';
 
 beforeAll(async () => {
-  // Puedes optar por conectar explícitamente:
-  // await connectDB();
+  await checkDBConnection();
   await setupDatabaseSchema();
 });
 

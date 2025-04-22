@@ -260,7 +260,7 @@ export const getLevelProgressionService = async (employeeId) => {
     nextLevel = {
       currentLevel: 'Max Level',
       xp: '∞',
-      image: 'https://sonhoastral.com/uploads/content/image/96371/infinito.jpg',
+      image: 'https://bucket-tfg-pablo.s3.eu-north-1.amazonaws.com/gamificacion/infinito.png',
     };
   }
   const progressData = {

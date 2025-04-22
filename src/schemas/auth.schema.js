@@ -106,12 +106,12 @@ export const createAdminSchema = z.object({
  * @property {string} email - The user's email address.
  */
 export const forgotPasswordSchema = z.object({
-  email: z.string().email({ message: 'A valid email is required' }),
+  email: z.string().email({ message: 'El correo electrónico debe ser válido' }),
 });
 
 /**
  * Schema for a reset password request.
- * Validates that the new password is at least 6 characters long.
+ * Validates that the new password is at least 5 characters long.
  *
  * @typedef {Object} ResetPasswordData
  * @property {string} password - The new password.
@@ -119,5 +119,5 @@ export const forgotPasswordSchema = z.object({
 export const resetPasswordSchema = z.object({
   password: z
     .string()
-    .min(6, { message: 'The password must be at least 6 characters long' }),
+    .min(5, { message: 'La contraseña debe tener al menos 5 caracteres' }),
 });

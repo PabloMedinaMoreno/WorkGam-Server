@@ -3,22 +3,11 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
-  // DB_USER,
-  // DB_HOST,
-  // DB_DATABASE,
-  // DB_PASSWORD,
-  // DB_PORT,
   DATABASE_URL,
-  TEST_DATABASE_URL,
-  NODE_ENV,
 } from '../config/config.js';
 
-// Selecciona la cadena de conexión según el entorno
-const connectionString =
-  NODE_ENV === 'test' ? TEST_DATABASE_URL : DATABASE_URL;
-
 export const pool = new pg.Pool({
-  connectionString,
+  connectionString: DATABASE_URL,
   ssl: {
     rejectUnauthorized: false,
   },
@@ -86,8 +75,20 @@ async function insertDatabaseData() {
   }
 }
 
+/**
+ * Initializes the database by setting up the schema and inserting data.
+ * 
+ * @async
+ * @returns {Promise<void>} Resolves when the database is initialized.
+ * @throws {Error} If an error occurs during the initialization process.
+ * */
 export async function initializeDatabase() {
-  await setupDatabaseSchema();
-  await insertDatabaseData();
+  try {
+    await setupDatabaseSchema();
+    await insertDatabaseData();
+  } catch (error) {
+    console.error('XXX Error initializing database:', error);
+    throw error;
+  }
 }
 

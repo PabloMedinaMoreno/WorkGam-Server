@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool } from '../databases/db.js';
-import { JWT_SECRET, BACKEND_URL } from '../config/config.js';
+import { JWT_SECRET, FRONTEND_URL } from '../config/config.js';
 import { sendEmail } from '../utils/sendEmail.js';
 import { loadTemplate } from '../utils/templateLoader.js';
 import { createAccessToken } from '../utils/jwt.js';
@@ -286,7 +286,7 @@ export async function forgotPasswordService({ email }) {
   );
 
   if (userQuery.rowCount === 0) {
-    throw new Error('The email does not exist');
+    throw new Error('El email no existe');
   }
 
   const user = userQuery.rows[0];
@@ -294,8 +294,8 @@ export async function forgotPasswordService({ email }) {
   // Generate a reset token with a 1-hour expiration
   const token = await createAccessToken({ id: user.id }, '1h');
 
-  // Build the reset link using the BACKEND_URL from configuration
-  const resetLink = `${BACKEND_URL}/reset-password/${token}`;
+  // Build the reset link using the FRONTEND_URL from configuration
+  const resetLink = `${FRONTEND_URL}/reset-password/${token}`;
 
   // Load the email template and replace the placeholder {{RESET_LINK}}
   const htmlContent = loadTemplate('resetPasswordEmail.html', {

@@ -27,7 +27,7 @@ export const signup = async (req, res) => {
     const { username, email, password, gender, phone } = req.body;
     const { user, token } = await signupService({ username, email, password, gender, phone });
 
-    // Send welcome notification (adjust as needed)
+    // Send welcome notification
     await createAndSendNotificationService(user.id, '¡Bienvenido a la plataforma!');
 
     res.cookie('token', token, {

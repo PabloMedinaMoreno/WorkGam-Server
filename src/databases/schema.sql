@@ -140,3 +140,17 @@ CREATE TABLE IF NOT EXISTS password_reset_token (
   expires_at TIMESTAMP NOT NULL,
   FOREIGN KEY (person_id) REFERENCES person(id) ON DELETE CASCADE
 );
+
+INSERT INTO role (name, description) VALUES
+  ('Administrador', 'Encargado de gestionar el sistema y los usuarios.');
+
+  -- Insertar un administrador
+INSERT INTO person (username, email, password)
+VALUES ('admin', 'admin@workgam.com', '$2a$10$jMafKXGfYF.ulcehq6pWNe/M8ry7d1RBGC3.gC6zahHmkIWHXE6BO');
+
+-- Luego insertamos en employee (usamos un SELECT para obtener id del rol 'admin')
+INSERT INTO employee (id, role_id) 
+VALUES (
+  (SELECT id FROM person WHERE username = 'admin'),
+  (SELECT id FROM role WHERE name = 'Administrador')
+);

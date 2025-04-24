@@ -144,7 +144,7 @@ export const deleteTask = async (req, res) => {
   const { taskId } = req.params;
   try {
     await deleteTaskService(taskId);
-    res.status(204).json({ message: 'Tarea eliminada correctamente' });
+    res.status(204).send();
   } catch (error) {
     console.error('Error al eliminar la tarea:', error);
     res.status(500).json({ message: 'Error al eliminar la tarea' });

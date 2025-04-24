@@ -1,11 +1,10 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { pool } from '../databases/db.js';
-import { JWT_SECRET, FRONTEND_URL } from '../constants/constants.js';
-import { sendEmail } from '../utils/sendEmail.utils.js';
-import { loadTemplate } from '../utils/templateLoader.utils.js';
-import { createAccessToken } from '../utils/jwt.utils.js';
-
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { pool } from "../databases/db.js";
+import { JWT_SECRET, FRONTEND_URL } from "../constants/constants.js";
+import { sendEmail } from "../utils/sendEmail.utils.js";
+import { loadTemplate } from "../utils/templateLoader.utils.js";
+import { createAccessToken } from "../utils/jwt.utils.js";
 
 /**
  * Registers a new user.
@@ -29,44 +28,47 @@ export const signupService = async ({
   try {
     // Check if the email already exists
     const emailCheck = await pool.query(
-      'SELECT * FROM person WHERE email = $1',
-      [email],
+      "SELECT * FROM person WHERE email = $1",
+      [email]
     );
-    if (emailCheck.rowCount > 0) {throw new Error('El email ya existe');}
+    if (emailCheck.rowCount > 0) {
+      throw new Error("El email ya está registrado");
+    }
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate the profile picture based on gender
     const profilePic =
-      gender === 'male'
+      gender === "male"
         ? `https://avatar.iran.liara.run/public/boy?username=${username}`
         : `https://avatar.iran.liara.run/public/girl?username=${username}`;
 
     // Insert the user into the person table
     const person = await pool.query(
-      'INSERT INTO person (username, email, password, profile_pic, phone) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [username, email, hashedPassword, profilePic, phone || null],
+      "INSERT INTO person (username, email, password, profile_pic, phone) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+      [username, email, hashedPassword, profilePic, phone || null]
     );
 
     // Insert the user into the client table
     const personId = person.rows[0].id;
-    await pool.query('INSERT INTO client (id) VALUES ($1)', [personId]);
+    await pool.query("INSERT INTO client (id) VALUES ($1)", [personId]);
 
     // Enviar email de bienvenida
-    const htmlContent = loadTemplate('welcomeEmail.html', {
+    const htmlContent = loadTemplate("welcomeEmail.html", {
       USERNAME: username,
     });
-    await sendEmail(email, 'Bienvenido a WorkGam', htmlContent);
+    await sendEmail(email, "Bienvenido a WorkGam", htmlContent);
 
     // Create the token
-    const token = await createAccessToken({ id: personId, role: 'Cliente' });
+    const token = await createAccessToken({ id: personId, role: "Cliente" });
     const userData = {
       id: personId,
       username,
       email,
       profile_pic: profilePic,
       phone,
+      role: "Cliente",
     };
 
     return { token, user: userData };
@@ -94,21 +96,30 @@ export const loginService = async ({ email, password }) => {
        LEFT JOIN employee e ON p.id = e.id
        LEFT JOIN role r ON e.role_id = r.id
        WHERE p.email = $1`,
-      [email],
+      [email]
     );
 
-    if (userQuery.rowCount === 0) {throw new Error('El usuario no existe');}
+    if (userQuery.rowCount === 0) {
+      throw new Error("El usuario no existe");
+    }
 
     const user = userQuery.rows[0];
 
     // Compare the password
     const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {throw new Error('Contraseña inválida');}
+    if (!validPassword) {
+      throw new Error("Contraseña inválida");
+    }
 
     // Create the token
     const token = await createAccessToken({
       id: user.id,
-      role: user.role === 'Administrador' ? 'Administrador' : user.role === 'Cliente' ? 'Cliente' : 'Empleado',
+      role:
+        user.role === "Administrador"
+          ? "Administrador"
+          : user.role === "Cliente"
+          ? "Cliente"
+          : "Empleado",
     });
     const userData = {
       id: user.id,
@@ -137,9 +148,9 @@ export const loginService = async ({ email, password }) => {
 export const logoutService = async (req) => {
   try {
     // Note: Ensure that the "res" object is also passed if you need to clear the cookie from the service.
-    req.res.clearCookie('token');
+    req.res.clearCookie("token");
   } catch (error) {
-    throw new Error(error.message || 'Error al cerrar sesión');
+    throw new Error(error.message || "Error al cerrar sesión");
   }
 };
 
@@ -160,11 +171,11 @@ export const profileService = async (personId) => {
        LEFT JOIN employee e ON p.id = e.id
        LEFT JOIN role r ON e.role_id = r.id
        WHERE p.id = $1`,
-      [personId],
+      [personId]
     );
     return userQuery.rows[0];
   } catch (error) {
-    throw new Error(error.message || 'Error al obtener el perfil');
+    throw new Error(error.message || "Error al obtener el perfil");
   }
 };
 
@@ -181,17 +192,27 @@ export const profileService = async (personId) => {
  */
 export const updateProfileService = async (
   personId,
-  { username, email, phone },
+  { username, email, phone }
 ) => {
   try {
+
+    // Check if the email already exists for another user
+    const emailCheck = await pool.query(
+      "SELECT * FROM person WHERE email = $1 AND id != $2",
+      [email, personId]
+    );
+    if (emailCheck.rowCount > 0) {
+      throw new Error("El email ya está registrado");
+    }
+    
     await pool.query(
-      'UPDATE person SET username = $1, email = $2, phone = $3 WHERE id = $4 RETURNING *',
-      [username, email, phone || null, personId],
+      "UPDATE person SET username = $1, email = $2, phone = $3 WHERE id = $4 RETURNING *",
+      [username, email, phone || null, personId]
     );
     const user = await profileService(personId);
     return user;
   } catch (error) {
-    throw new Error(error.message || 'Error al actualizar el perfil');
+    throw new Error(error.message || "Error al actualizar el perfil");
   }
 };
 
@@ -207,13 +228,13 @@ export const updateProfilePicService = async (personId, file) => {
   try {
     const profilePic = file.location;
     await pool.query(
-      'UPDATE person SET profile_pic = $1 WHERE id = $2 RETURNING *',
-      [profilePic, personId],
+      "UPDATE person SET profile_pic = $1 WHERE id = $2 RETURNING *",
+      [profilePic, personId]
     );
     const user = await profileService(personId);
     return user;
   } catch (error) {
-    throw new Error(error.message || 'Error al actualizar la foto de perfil');
+    throw new Error(error.message || "Error al actualizar la foto de perfil");
   }
 };
 
@@ -230,41 +251,46 @@ export const updateProfilePicService = async (personId, file) => {
  */
 export const changePasswordService = async (
   personId,
-  { oldPassword, newPassword, confirmPassword },
+  { oldPassword, newPassword, confirmPassword }
 ) => {
   try {
     // Check that the new passwords match
-    if (newPassword !== confirmPassword)
-    {throw new Error('Las contraseñas no coinciden');}
+    if (newPassword !== confirmPassword) {
+      console.log("Las contraseñas no coinciden");
+      throw new Error("Las contraseñas no coinciden");
+    }
 
     // Retrieve the user from the database
     const userQuery = await pool.query(
-      'SELECT password FROM person WHERE id = $1',
-      [personId],
+      "SELECT password FROM person WHERE id = $1",
+      [personId]
     );
-    if (userQuery.rowCount === 0) {throw new Error('Usuario no encontrado');}
+    if (userQuery.rowCount === 0) {
+      throw new Error("Usuario no encontrado");
+    }
 
     const user = userQuery.rows[0];
 
     // Compare the current password
     const validPassword = await bcrypt.compare(oldPassword, user.password);
-    if (!validPassword) {throw new Error('Contraseña actual incorrecta');}
+    if (!validPassword) {
+      throw new Error("Contraseña actual incorrecta");
+    }
 
     // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     // Update the password in the database
-    await pool.query('UPDATE person SET password = $1 WHERE id = $2', [
+    await pool.query("UPDATE person SET password = $1 WHERE id = $2", [
       hashedPassword,
       personId,
     ]);
 
-    return { message: 'Contraseña cambiada exitosamente' };
+    return { message: "Contraseña cambiada exitosamente" };
   } catch (error) {
     throw new Error(error.message);
   }
 };
-
 
 /**
  * Service to send the password recovery email.
@@ -281,31 +307,31 @@ export const changePasswordService = async (
 export async function forgotPasswordService({ email }) {
   // Look up the user in the person table
   const userQuery = await pool.query(
-    'SELECT id, email FROM person WHERE email = $1',
-    [email],
+    "SELECT id, email FROM person WHERE email = $1",
+    [email]
   );
 
   if (userQuery.rowCount === 0) {
-    throw new Error('El email no existe');
+    throw new Error("El email no existe");
   }
 
   const user = userQuery.rows[0];
 
   // Generate a reset token with a 1-hour expiration
-  const token = await createAccessToken({ id: user.id }, '1h');
+  const token = await createAccessToken({ id: user.id }, "1h");
 
   // Build the reset link using the FRONTEND_URL from configuration
   const resetLink = `${FRONTEND_URL}/reset-password/${token}`;
 
   // Load the email template and replace the placeholder {{RESET_LINK}}
-  const htmlContent = loadTemplate('resetPasswordEmail.html', {
+  const htmlContent = loadTemplate("resetPasswordEmail.html", {
     RESET_LINK: resetLink,
   });
 
   // Send the email with the template
-  await sendEmail(user.email, 'Reset your password at WorkGam', htmlContent);
+  await sendEmail(user.email, "Restablecer contraseña", htmlContent);
 
-  return { message: 'The link to reset your password has been sent' };
+  return { message: "El enlace para restablecer tu contraseña ha sido enviado", token };
 }
 
 /**
@@ -325,17 +351,17 @@ export async function resetPasswordService({ token, password }) {
     // Verify the token; if invalid or expired, an error will be thrown
     payload = jwt.verify(token, JWT_SECRET);
   } catch (error) {
-    throw new Error(error.message || 'Invalid or expired token');
+    throw new Error("Token inválido o expirado");
   }
 
   // Hash the new password
   const hashedPassword = await bcrypt.hash(password, 10);
 
   // Update the password in the person table using the id from the token payload
-  await pool.query('UPDATE person SET password = $1 WHERE id = $2', [
+  await pool.query("UPDATE person SET password = $1 WHERE id = $2", [
     hashedPassword,
     payload.id,
   ]);
 
-  return { message: 'The password has been updated successfully' };
+  return { message: "La contraseña ha sido actualizada exitosamente" };
 }

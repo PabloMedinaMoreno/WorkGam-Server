@@ -17,7 +17,7 @@ export const authRequired = (req, res, next) => {
 
   // If there is no token, send an error message
   if (!token) {
-    return res.status(401).json({ message: 'No token, authorization denied' });
+    return res.status(401).json({ message: 'Se requiere autenticación para acceder a este recurso' });
   }
 
   // If there is a token, verify it with the secret key
@@ -47,7 +47,7 @@ export const verifyRole = (roles) => (req, res, next) => {
     return res
       .status(403)
       .json({
-        message: 'Access denied, insufficient permissions',
+        message: 'Acceso denegado. No tienes el rol necesario para acceder a este recurso',
       });
   }
 

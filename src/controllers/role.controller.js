@@ -92,8 +92,11 @@ export const deleteRole = async (req, res) => {
   try {
     const { roleId } = req.params;
     await deleteRoleService(roleId);
-    res.status(204).json({ message: 'Role deleted successfully' });
+    return res.status(204).send();
   } catch (error) {
+    if (error.message.includes('no existe')) {
+      return res.status(404).json({ message: error.message });
+    }
     console.error('Error deleting role:', error);
     res.status(500).json({ message: error.message });
   }

@@ -1,6 +1,5 @@
 -- Insertar roles que se usan en las tareas
 INSERT INTO role (name, description) VALUES
-  ('Administrador', 'Encargado de gestionar el sistema y los usuarios.'),
   ('Gestor de Solicitudes', 'Encargado de gestionar las solicitudes y documentos administrativos.'),
   ('Revisor Legal', 'Encargado de revisar los aspectos legales de los procedimientos, como antecedentes y formularios legales.'),
   ('Inspector Técnico', 'Responsable de realizar inspecciones técnicas y verificar la infraestructura de los negocios.'),
@@ -64,17 +63,6 @@ INSERT INTO task (name, description, xp, procedure_id, role_id, estimated_durati
 ('Informe técnico de instalaciones', 'Debe adjuntar el documento: informe técnico de instalaciones.', 60, 7, (SELECT id FROM role WHERE name = 'Inspector Técnico'), 5, 'medium'),
 ('Declaración jurada firmada', 'Debe adjuntar el documento: declaración jurada firmada.', 50, 7, (SELECT id FROM role WHERE name = 'Revisor Legal'), 4, 'easy');
 
-
-  -- Insertar un administrador
-INSERT INTO person (username, email, password)
-VALUES ('admin', 'admin@gmail.com', '$2a$10$jMafKXGfYF.ulcehq6pWNe/M8ry7d1RBGC3.gC6zahHmkIWHXE6BO');
-
--- Luego insertamos en employee (usamos un SELECT para obtener id del rol 'admin')
-INSERT INTO employee (id, role_id) 
-VALUES (
-  (SELECT id FROM person WHERE username = 'admin'),
-  (SELECT id FROM role WHERE name = 'Administrador')
-);
 
 
 

@@ -44,7 +44,6 @@ export async function checkDBConnection() {
  */
 export async function setupDatabaseSchema() {
   try {
-    console.log('>>> Setting up database schema...');
     const schemaPath = path.resolve(__dirname, 'schema.sql');
     const schemaSql = fs.readFileSync(schemaPath, 'utf8');
     await pool.query(schemaSql);

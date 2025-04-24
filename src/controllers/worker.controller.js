@@ -21,6 +21,10 @@ export const createWorker = async (req, res) => {
     const worker = await createWorkerService({ username, email, password, gender, phone, role_id });
     res.status(201).json(worker);
   } catch (error) {
+    if (error.message === 'El email ya está registrado') {
+      return res.status(409).json({ message: error.message });
+    }
+
     console.error('Error al crear el trabajador:', error);
     res.status(500).json({ message: error.message || 'Error al crear el trabajador' });
   }
@@ -63,6 +67,15 @@ export const updateWorker = async (req, res) => {
     const worker = await updateWorkerService(workerId, { username, email, role_id, phone });
     res.status(200).json(worker);
   } catch (error) {
+    if (error.message === 'El email ya está registrado') {	
+      return res.status(409).json({ message: error.message });
+    }
+    if (error.message === 'El trabajador no existe') {
+      return res.status(404).json({ message: error.message });
+    }
+    if (error.message === 'El rol no existe') {
+      return res.status(404).json({ message: error.message });
+    }
     console.error('Error al actualizar el trabajador:', error);
     res.status(500).json({ message: error.message || 'Error al actualizar el trabajador' });
   }
@@ -82,8 +95,11 @@ export const deleteWorker = async (req, res) => {
   try {
     const { workerId } = req.params;
     await deleteWorkerService(workerId);
-    res.status(204).json({ message: 'Trabajador eliminado correctamente' });
+    res.status(204).send();
   } catch (error) {
+    if (error.message === 'El trabajador no existe') {
+      return res.status(404).json({ message: error.message });
+    }
     console.error('Error al eliminar el trabajador:', error);
     res.status(500).json({ message: error.message || 'Error al eliminar el trabajador' });
   }

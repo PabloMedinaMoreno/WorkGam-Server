@@ -128,7 +128,7 @@ export const deleteProcedure = async (req, res) => {
   const { procedureId } = req.params;
   try {
     await deleteProcedureService(procedureId);
-    res.status(204).json({ message: 'Procedimiento eliminado correctamente' });
+    res.status(204).send();
   } catch (error) {
     console.error(error);
     if (error.message === 'Procedimiento no encontrado') {

@@ -67,7 +67,7 @@ export const updateWorker = async (req, res) => {
     const worker = await updateWorkerService(workerId, { username, email, role_id, phone });
     res.status(200).json(worker);
   } catch (error) {
-    if (error.message === 'El email ya está registrado') {	
+    if (error.message === 'El email ya está registrado') {
       return res.status(409).json({ message: error.message });
     }
     if (error.message === 'El trabajador no existe') {

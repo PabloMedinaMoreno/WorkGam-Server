@@ -1,6 +1,6 @@
-import { pool } from "../databases/db.js";
-import { createAndSendNotificationService } from "./notification.service.js";
-import bcrypt from "bcryptjs";
+import { pool } from '../databases/db.js';
+import { createAndSendNotificationService } from './notification.service.js';
+import bcrypt from 'bcryptjs';
 
 /**
  * Creates a new worker in the system.
@@ -20,42 +20,42 @@ export const createWorkerService = async ({
 
   // Define the profile picture based on gender
   const profilePic =
-    gender === "male"
+    gender === 'male'
       ? `https://avatar.iran.liara.run/public/boy?username=${username}`
       : `https://avatar.iran.liara.run/public/girl?username=${username}`;
 
   try {
     // Check if the email already exists
     const emailCheck = await pool.query(
-      "SELECT * FROM person WHERE email = $1",
-      [email]
+      'SELECT * FROM person WHERE email = $1',
+      [email],
     );
     if (emailCheck.rowCount > 0) {
-      throw new Error("El email ya está registrado");
+      throw new Error('El email ya está registrado');
     }
 
     // Insert the worker in the person table
     const personResult = await pool.query(
-      "INSERT INTO person (username, email, password, profile_pic, phone) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-      [username, email, hashedPassword, profilePic, phone || null]
+      'INSERT INTO person (username, email, password, profile_pic, phone) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [username, email, hashedPassword, profilePic, phone || null],
     );
     const personId = personResult.rows[0].id;
 
     // Insert the worker in the employee table
     await pool.query(
-      "INSERT INTO employee (id, role_id) VALUES ($1, $2) RETURNING *",
-      [personId, role_id]
+      'INSERT INTO employee (id, role_id) VALUES ($1, $2) RETURNING *',
+      [personId, role_id],
     );
 
     // Insert the worker in the gamification table
-    await pool.query("INSERT INTO gamification (employee_id) VALUES ($1)", [
+    await pool.query('INSERT INTO gamification (employee_id) VALUES ($1)', [
       personId,
     ]);
 
     // Create a welcome notification
     await createAndSendNotificationService(
       personId,
-      "¡Bienvenido a la plataforma!"
+      '¡Bienvenido a la plataforma!',
     );
 
     return {
@@ -67,8 +67,8 @@ export const createWorkerService = async ({
       phone,
     };
   } catch (error) {
-    console.error("Error registering worker:", error);
-    throw new Error(error.message || "Error registrando el trabajador");
+    console.error('Error registering worker:', error);
+    throw new Error(error.message || 'Error registrando el trabajador');
   }
 };
 
@@ -80,12 +80,12 @@ export const getWorkersService = async () => {
   try {
     const result = await pool.query(
       `SELECT p.id, p.username, p.email, p.profile_pic, p.phone, r.name AS role
-       FROM person p JOIN employee e ON p.id = e.id JOIN role r ON e.role_id = r.id`
+       FROM person p JOIN employee e ON p.id = e.id JOIN role r ON e.role_id = r.id`,
     );
     return result.rows;
   } catch (error) {
-    console.error("Error getting workers:", error);
-    throw new Error("Error getting workers");
+    console.error('Error getting workers:', error);
+    throw new Error('Error getting workers');
   }
 };
 
@@ -97,51 +97,51 @@ export const getWorkersService = async () => {
  */
 export const updateWorkerService = async (
   workerId,
-  { username, email, role_id, phone }
+  { username, email, role_id, phone },
 ) => {
   try {
 
     const existingWorker = await pool.query(
-      "SELECT * FROM person WHERE id = $1",
-      [workerId]
+      'SELECT * FROM person WHERE id = $1',
+      [workerId],
     );
 
     // Check if the worker exists
     if (existingWorker.rowCount === 0) {
-      throw new Error("El trabajador no existe");
+      throw new Error('El trabajador no existe');
     }
     // Check if the email already exists for another worker
     const emailCheck = await pool.query(
-      "SELECT * FROM person WHERE email = $1 AND id != $2",
-      [email, workerId]
+      'SELECT * FROM person WHERE email = $1 AND id != $2',
+      [email, workerId],
     );
 
     if (emailCheck.rowCount > 0) {
-      throw new Error("El email ya está registrado");
+      throw new Error('El email ya está registrado');
     }
     // Check if the role exists
     const roleCheck = await pool.query(
-      "SELECT * FROM role WHERE id = $1",
-      [role_id]
+      'SELECT * FROM role WHERE id = $1',
+      [role_id],
     );
     if (roleCheck.rowCount === 0) {
-      throw new Error("El rol no existe");
+      throw new Error('El rol no existe');
     }
 
     // Update the worker's personal information
     const updatedPerson = await pool.query(
-      "UPDATE person SET username = $1, email = $2, phone = $3 WHERE id = $4 RETURNING *",
-      [username, email, phone || null, workerId]
+      'UPDATE person SET username = $1, email = $2, phone = $3 WHERE id = $4 RETURNING *',
+      [username, email, phone || null, workerId],
     );
 
     // Update the worker's role
-    await pool.query("UPDATE employee SET role_id = $1 WHERE id = $2", [
+    await pool.query('UPDATE employee SET role_id = $1 WHERE id = $2', [
       role_id,
       workerId,
     ]);
 
     // Get the updated worker's information with the role
-    const role = await pool.query("SELECT name FROM role WHERE id = $1", [
+    const role = await pool.query('SELECT name FROM role WHERE id = $1', [
       role_id,
     ]);
 
@@ -151,11 +151,11 @@ export const updateWorkerService = async (
       email: updatedPerson.rows[0].email,
       role: role.rows[0].name,
       profile_pic: updatedPerson.rows[0].profile_pic,
-      phone: updatedPerson.rows[0].phone || "N/A",
+      phone: updatedPerson.rows[0].phone || 'N/A',
     };
   } catch (error) {
-    console.error("Error updating worker:", error);
-    throw new Error(error.message || "Error updating worker");
+    console.error('Error updating worker:', error);
+    throw new Error(error.message || 'Error updating worker');
   }
 };
 
@@ -168,25 +168,25 @@ export const deleteWorkerService = async (workerId) => {
   try {
     // Check if the worker exists
     const existingWorker = await pool.query(
-      "SELECT * FROM person WHERE id = $1",
-      [workerId]
+      'SELECT * FROM person WHERE id = $1',
+      [workerId],
     );
     if (existingWorker.rowCount === 0) {
-      throw new Error("El trabajador no existe");
+      throw new Error('El trabajador no existe');
     }
 
     // Delete the worker from the gamification table
-    await pool.query("DELETE FROM gamification WHERE employee_id = $1", [
+    await pool.query('DELETE FROM gamification WHERE employee_id = $1', [
       workerId,
     ]);
     // Delete the worker from the employee table
-    await pool.query("DELETE FROM employee WHERE id = $1", [workerId]);
+    await pool.query('DELETE FROM employee WHERE id = $1', [workerId]);
 
     // Delete the worker from the person table
-    await pool.query("DELETE FROM person WHERE id = $1", [workerId]);
+    await pool.query('DELETE FROM person WHERE id = $1', [workerId]);
   } catch (error) {
-    console.error("Error deleting worker:", error);
-    throw new Error(error.message || "Error deleting worker");
+    console.error('Error deleting worker:', error);
+    throw new Error(error.message || 'Error deleting worker');
   }
 };
 
@@ -199,17 +199,17 @@ export const selectEmployeeByRoleService = async (role_id) => {
   try {
     // We get the employee with the least experience
     const employee = await pool.query(
-      "SELECT * FROM gamification G JOIN employee E ON G.employee_id = E.id WHERE E.role_id = $1 ORDER BY G.xp_total ASC LIMIT 1",
-      [role_id]
+      'SELECT * FROM gamification G JOIN employee E ON G.employee_id = E.id WHERE E.role_id = $1 ORDER BY G.xp_total ASC LIMIT 1',
+      [role_id],
     );
     // If there are no rows we throw an error
     if (employee.rowCount === 0) {
-      throw new Error("No hay empleados con ese rol.");
+      throw new Error('No hay empleados con ese rol.');
     }
     const employee_id = employee.rows[0].employee_id;
     return employee_id;
   } catch (error) {
-    console.error("Error obteniendo empleados por experiencia:", error);
+    console.error('Error obteniendo empleados por experiencia:', error);
     throw new Error(error.message);
   }
 };

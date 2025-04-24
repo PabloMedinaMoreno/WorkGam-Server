@@ -1,4 +1,4 @@
-import { pool } from "../databases/db.js";
+import { pool } from '../databases/db.js';
 
 /**
  * Creates a new role in the system.
@@ -12,25 +12,25 @@ import { pool } from "../databases/db.js";
 export const createRoleService = async ({ name, description }) => {
   try {
     // Check if the role already exists
-    const roleCheck = await pool.query("SELECT * FROM role WHERE name = $1", [
+    const roleCheck = await pool.query('SELECT * FROM role WHERE name = $1', [
       name,
     ]);
     if (roleCheck.rowCount > 0) {
-      throw new Error("El rol ya existe");
+      throw new Error('El rol ya existe');
     }
 
     const result = await pool.query(
-      "INSERT INTO role (name, description) VALUES ($1, $2) RETURNING *",
-      [name, description]
+      'INSERT INTO role (name, description) VALUES ($1, $2) RETURNING *',
+      [name, description],
     );
 
     // Check if the role was created successfully
     if (result.rowCount === 0) {
-      throw new Error("Error al crear el rol");
+      throw new Error('Error al crear el rol');
     }
     return result.rows[0];
   } catch (error) {
-    throw new Error(error.message || "Error al crear el rol");
+    throw new Error(error.message || 'Error al crear el rol');
   }
 };
 
@@ -42,10 +42,10 @@ export const createRoleService = async ({ name, description }) => {
  */
 export const getRolesService = async () => {
   try {
-    const result = await pool.query("SELECT * FROM role");
+    const result = await pool.query('SELECT * FROM role');
     return result.rows;
   } catch (error) {
-    throw new Error("Error al obtener los roles");
+    throw new Error(error.message || 'Error al obtener los roles');
   }
 };
 
@@ -57,11 +57,11 @@ export const getRolesService = async () => {
  */
 export const getEmployeeRolesService = async () => {
   try {
-    const result = await pool.query("SELECT * FROM role");
+    const result = await pool.query('SELECT * FROM role');
     const rolesNames = result.rows.map((role) => role.name);
     return rolesNames;
   } catch (error) {
-    throw new Error("Error al obtener los roles de empleado");
+    throw new Error(error.message || 'Error al obtener los roles de empleados');
   }
 };
 
@@ -78,37 +78,37 @@ export const getEmployeeRolesService = async () => {
 export const updateRoleService = async (roleId, { name, description }) => {
   try {
     // Check if the role exists
-    const roleCheck = await pool.query("SELECT * FROM role WHERE id = $1", [
+    const roleCheck = await pool.query('SELECT * FROM role WHERE id = $1', [
       roleId,
     ]);
     if (roleCheck.rowCount === 0) {
-      throw new Error("El rol no existe");
+      throw new Error('El rol no existe');
     }
 
     // Check if the new role name already exists
     const roleNameCheck = await pool.query(
-      "SELECT * FROM role WHERE name = $1 AND id != $2",
-      [name, roleId]
+      'SELECT * FROM role WHERE name = $1 AND id != $2',
+      [name, roleId],
     );
     if (roleNameCheck.rowCount > 0) {
-      throw new Error("El rol ya existe");
+      throw new Error('El rol ya existe');
     }
 
 
     // Update the role
     const result = await pool.query(
-      "UPDATE role SET name = $1, description = $2 WHERE id = $3 RETURNING *",
-      [name, description, roleId]
+      'UPDATE role SET name = $1, description = $2 WHERE id = $3 RETURNING *',
+      [name, description, roleId],
     );
 
     // Check if the role was updated successfully
     if (result.rowCount === 0) {
-      throw new Error("Error al actualizar el rol");
+      throw new Error('Error al actualizar el rol');
     }
     // Return the updated role
     return result.rows[0];
   } catch (error) {
-    throw new Error(error.message || "Error al actualizar el rol");
+    throw new Error(error.message || 'Error al actualizar el rol');
   }
 };
 
@@ -122,14 +122,14 @@ export const updateRoleService = async (roleId, { name, description }) => {
 export const deleteRoleService = async (roleId) => {
   try {
     // Check if the role exists
-    const roleCheck = await pool.query("SELECT * FROM role WHERE id = $1", [
+    const roleCheck = await pool.query('SELECT * FROM role WHERE id = $1', [
       roleId,
     ]);
     if (roleCheck.rowCount === 0) {
-      throw new Error("El rol no existe");
+      throw new Error('El rol no existe');
     }
-    await pool.query("DELETE FROM role WHERE id = $1", [roleId]);
+    await pool.query('DELETE FROM role WHERE id = $1', [roleId]);
   } catch (error) {
-    throw new Error(error.message || "Error al eliminar el rol");
+    throw new Error(error.message || 'Error al eliminar el rol');
   }
 };

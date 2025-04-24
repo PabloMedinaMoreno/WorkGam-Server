@@ -1,10 +1,9 @@
 import request from 'supertest';
-import app from '../src/app.js'; 
-import { checkDBConnection, setupDatabaseSchema } from '../src/databases/db.js';
+import app from '../src/app.js';
+import { setupDatabaseSchema } from '../src/databases/db.js';
 const baseUrl = '/api/auth';
 
 beforeAll(async () => {
-  await checkDBConnection();
   await setupDatabaseSchema();
 });
 
@@ -205,8 +204,10 @@ describe('AUTH: /forgot-password', () => {
     });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.message).toBe('El enlace para restablecer tu contraseña ha sido enviado');
-    expect(res.body).toHaveProperty('token');  // Verifica que el token se envíe
+    expect(res.body.message).toBe(
+      'El enlace para restablecer tu contraseña ha sido enviado',
+    );
+    expect(res.body).toHaveProperty('token'); // Verifica que el token se envíe
   });
 
   it('debería retornar un error 400 si el email no existe', async () => {
@@ -221,9 +222,11 @@ describe('AUTH: /forgot-password', () => {
 
 describe('AUTH: /reset-password', () => {
   it('debería restablecer la contraseña correctamente', async () => {
-    const resForgotPassword = await request(app).post(`${baseUrl}/forgot-password`).send({
-      email: 'test@example.com',
-    });
+    const resForgotPassword = await request(app)
+      .post(`${baseUrl}/forgot-password`)
+      .send({
+        email: 'test@example.com',
+      });
 
     const resetToken = resForgotPassword.body.token;
 
@@ -234,7 +237,9 @@ describe('AUTH: /reset-password', () => {
       });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.message).toBe('La contraseña ha sido actualizada exitosamente');
+    expect(res.body.message).toBe(
+      'La contraseña ha sido actualizada exitosamente',
+    );
   });
 
   it('debería retornar un error 400 si el token es inválido', async () => {

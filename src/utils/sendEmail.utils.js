@@ -13,7 +13,7 @@ import { EMAIL_FROM, EMAIL_PASS, NODE_ENV } from '../constants/constants.js';
 export async function sendEmail(to, subject, html) {
 
   // Check if the environment is production
-  if (NODE_ENV === 'test') return;
+  if (NODE_ENV === 'test') {return;}
   // Create the transporter using your email service configuration
   const transporter = nodemailer.createTransport({
     service: 'Gmail', // or another email service provider

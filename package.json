@@ -1,7 +1,7 @@
 {
-    "name": "mern-tasks",
+    "name": "workgam-backend",
     "version": "1.0.0",
-    "description": "Backend for TFG",
+    "description": "Backend for WorkGam, a gamified work management tool.",
     "main": "index.js",
     "type": "module",
     "scripts": {

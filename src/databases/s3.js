@@ -4,7 +4,7 @@ import {
   AWS_REGION,
   AWS_SECRET_ACCESS_KEY,
   AWS_BUCKET_NAME,
-} from '../config/config.js';
+} from '../constants/constants.js';
 import { ListBucketsCommand } from '@aws-sdk/client-s3';
 import { HeadBucketCommand } from '@aws-sdk/client-s3';
 

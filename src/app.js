@@ -16,7 +16,7 @@ import gamificationRoutes from './routes/gamification.routes.js';
 import notificationRoutes from './routes/notification.routes.js';
 
 // Importa the frontend URL
-import { FRONTEND_URL } from './config/config.js';
+import { FRONTEND_URL } from './constants/constants.js';
 
 const app = express();
 

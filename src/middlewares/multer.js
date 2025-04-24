@@ -1,7 +1,7 @@
 import multer from 'multer';
 import multerS3 from 'multer-s3';
 import { s3 } from '../databases/s3.js';
-import { AWS_BUCKET_NAME } from '../config/config.js';
+import { AWS_BUCKET_NAME } from '../constants/constants.js';
 
 // Middleware to upload PDF files
 export const uploadPDF = multer({

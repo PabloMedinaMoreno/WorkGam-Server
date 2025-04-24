@@ -6,7 +6,7 @@
 import http from 'http';
 import { Server } from 'socket.io';
 import app from './app.js';
-import { FRONTEND_URL } from './config/config.js';
+import { FRONTEND_URL } from './constants/constants.js';
 
 const server = http.createServer(app);
 const io = new Server(server, {

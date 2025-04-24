@@ -184,7 +184,7 @@ export const deleteNotificationService = async (notificationId) => {
 
   // If the notification was deleted successfully, return a success message
   return { message: 'Notificación eliminada correctamente' };
-}
+};
 
 /**
  * Deletes all notifications for a given user.
@@ -211,4 +211,4 @@ export const deleteAllNotificationsService = async (personId) => {
 
   // If the notifications were deleted successfully, return a success message
   return { message: 'Todas las notificaciones eliminadas correctamente' };
-}
+};

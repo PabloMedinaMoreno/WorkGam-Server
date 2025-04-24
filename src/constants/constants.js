@@ -21,8 +21,8 @@ export const AWS_BUCKET_NAME = process.env.AWS_BUCKET_NAME;
 export const DATABASE_URL = process.env.NODE_ENV === 'test'
   ? process.env.TEST_DATABASE_URL
   : process.env.NODE_ENV === 'production'
-  ? process.env.DATABASE_URL
-  : process.env.DATABASE_URL_LOCAL;
+    ? process.env.DATABASE_URL
+    : process.env.DATABASE_URL_LOCAL;
 
 export const EMAIL_FROM = process.env.EMAIL_FROM;
 export const EMAIL_PASS = process.env.EMAIL_PASS;

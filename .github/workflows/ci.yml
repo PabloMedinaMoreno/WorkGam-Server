@@ -25,17 +25,17 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
-      # - name: Run tests
-      #   run: npm test
+      - name: Run tests
+        run: npm test
 
-      # - name: Generate coverage report
-      #   run: npm run coverage
-
-      # - name: Generate documentation with JSDoc
-      #   run: npm run docs
+      - name: Generate documentation with JSDoc
+        run: npm run docs
 
       # - name: Deploy JSDoc to GitHub Pages
       #   uses: peaceiris/actions-gh-pages@v4
       #   with:
       #     github_token: ${{ secrets.GITHUB_TOKEN }}
       #     publish_dir: ./docs
+
+      # - name: Generate coverage report
+      #   run: npm run coverage

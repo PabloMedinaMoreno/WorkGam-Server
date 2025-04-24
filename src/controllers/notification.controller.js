@@ -78,11 +78,11 @@ export const deleteNotification = async (req, res) => {
     }
     res.status(500).json({ message: error.message || 'Error al eliminar la notificación' });
   }
-}
+};
 
 /**
  * Controller to delete all notifications for the authenticated user.
- * 
+ *
  * @param {Object} req - The HTTP request object. Expects req.user.id to contain the user's ID.
  * @param {Object} res - The HTTP response object.
  */

@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { EMAIL_FROM, EMAIL_PASS } from '../config/config.js';
+import { EMAIL_FROM, EMAIL_PASS } from '../constants/constants.js';
 
 /**
  * Sends an email using the provided parameters.

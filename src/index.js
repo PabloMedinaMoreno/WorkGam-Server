@@ -3,9 +3,10 @@
 // Finally, it logs the server URL and the environment
 
 import { server } from './server.js';
-import { checkDBConnection, initializeDatabase } from './databases/db.js';
+import { checkDBConnection } from './databases/db.js';
+// import { initializeDatabase } from './databases/db.js';
 import { checkS3Connection, checkBucketAccess } from './databases/s3.js';
-import { PORT, BACKEND_URL, NODE_ENV } from './config/config.js';
+import { PORT, BACKEND_URL, NODE_ENV } from './constants/constants.js';
 
 /**
  * Main function to start the server

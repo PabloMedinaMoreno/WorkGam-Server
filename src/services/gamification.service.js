@@ -1,11 +1,11 @@
 import { pool } from '../databases/db.js';
-import { calculateXPGamification } from '../utils/xpUtils.js'; // Utiliza una función para calcular XP y obtener el nivel
+import { calculateXPGamification } from '../utils/xp.utils.js'; // Utiliza una función para calcular XP y obtener el nivel
 import {
   createAndSendNotificationService,
   sendLevelUpNotificationService,
   sendWebSocketNotificationService,
 } from './notification.service.js';
-import { gamificationLevels } from '../utils/gamificationLevels.js';
+import { gamificationLevels } from '../constants/gamificationLevels.js';
 import { profileService } from './auth.service.js';
 
 /**

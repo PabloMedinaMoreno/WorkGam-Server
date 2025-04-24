@@ -1,10 +1,10 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { pool } from '../databases/db.js';
-import { JWT_SECRET, FRONTEND_URL } from '../config/config.js';
-import { sendEmail } from '../utils/sendEmail.js';
-import { loadTemplate } from '../utils/templateLoader.js';
-import { createAccessToken } from '../utils/jwt.js';
+import { JWT_SECRET, FRONTEND_URL } from '../constants/constants.js';
+import { sendEmail } from '../utils/sendEmail.utils.js';
+import { loadTemplate } from '../utils/templateLoader.utils.js';
+import { createAccessToken } from '../utils/jwt.utils.js';
 
 
 /**

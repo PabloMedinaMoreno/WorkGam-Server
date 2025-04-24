@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '../config/config.js';
+import { JWT_SECRET } from '../constants/constants.js';
 
 /**
  * Creates a JWT token with a customizable expiration.

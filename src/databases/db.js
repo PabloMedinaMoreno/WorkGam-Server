@@ -4,13 +4,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import {
   DATABASE_URL,
-} from '../config/config.js';
+} from '../constants/constants.js';
 
 export const pool = new pg.Pool({
   connectionString: DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  // ssl: {
+  //   rejectUnauthorized: false,
+  // },
 });
 
 const __filename = fileURLToPath(import.meta.url);
@@ -77,7 +77,7 @@ async function insertDatabaseData() {
 
 /**
  * Initializes the database by setting up the schema and inserting data.
- * 
+ *
  * @async
  * @returns {Promise<void>} Resolves when the database is initialized.
  * @throws {Error} If an error occurs during the initialization process.

@@ -17,6 +17,7 @@ export const authRequired = (req, res, next) => {
 
   // If there is no token, send an error message
   if (!token) {
+    console.log('No token provided');
     return res.status(401).json({ message: 'Se requiere autenticación para acceder a este recurso' });
   }
 

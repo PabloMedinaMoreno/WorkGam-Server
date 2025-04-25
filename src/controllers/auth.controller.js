@@ -32,8 +32,8 @@ export const signup = async (req, res) => {
 
     res.cookie('token', token, {
       httpOnly: process.env.NODE_ENV !== 'development',
-      secure: true,
-      sameSite: 'none',
+      secure: true,  
+      sameSite: 'none'
     });
 
     res.status(201).json(user);
@@ -65,7 +65,7 @@ export const login = async (req, res) => {
     res.cookie('token', token, {
       httpOnly: process.env.NODE_ENV !== 'development',
       secure: true,
-      sameSite: 'none',
+      sameSite: 'none'
     });
 
     res.status(200).json(user);

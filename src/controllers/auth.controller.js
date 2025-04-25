@@ -63,7 +63,7 @@ export const login = async (req, res) => {
     const { user, token } = await loginService({ email, password });
 
     res.cookie('token', token, {
-      httpOnly: process.env.NODE_ENV !== 'development',
+      httpOnly: false,
       secure: true,
       sameSite: 'none',
     });

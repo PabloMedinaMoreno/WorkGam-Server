@@ -25,9 +25,6 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
-      - name: Generate documentation with JSDoc
-        run: npm run docs
-
       - name: Run tests
         run: npm test
 

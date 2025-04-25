@@ -10,6 +10,7 @@ import {
   resetPasswordService,
 } from '../services/auth.service.js';
 import { createAndSendNotificationService } from '../services/notification.service.js';
+import { NODE_ENV } from '../constants/constants.js';
 
 /**
  * Registers a new user.
@@ -31,9 +32,10 @@ export const signup = async (req, res) => {
     await createAndSendNotificationService(user.id, '¡Bienvenido a la plataforma!');
 
     res.cookie('token', token, {
-      httpOnly: process.env.NODE_ENV !== 'development',
-      secure: true,
-      sameSite: 'none',
+      httpOnly: true,
+      secure: NODE_ENV === 'production', 
+      sameSite: 'None',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
     });
 
     res.status(201).json(user);
@@ -63,9 +65,10 @@ export const login = async (req, res) => {
     const { user, token } = await loginService({ email, password });
 
     res.cookie('token', token, {
-      httpOnly: false,
-      secure: true,
-      sameSite: 'none',
+      httpOnly: true,
+      secure: NODE_ENV === 'production',
+      sameSite: 'None',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
     });
 
     res.status(200).json(user);

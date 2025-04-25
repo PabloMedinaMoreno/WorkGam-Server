@@ -18,7 +18,7 @@ Thumbs.db
 coverage/
 
 # JSDoc output
-docs/
+# docs/
 
 # Test output
 jest-test-results.json

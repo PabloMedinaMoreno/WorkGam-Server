@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: services/role.service.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: services/role.service.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { pool } from '../databases/db.js';
+
+/**
+ * Creates a new role in the system.
+ *
+ * @param {Object} roleData - The role data to be created.
+ * @param {string} roleData.name - The name of the role.
+ * @param {string} roleData.description - The description of the role.
+ * @returns {Promise&lt;Object>} The created role data.
+ * @throws {Error} Throws an error if the role cannot be created.
+ */
+export const createRoleService = async ({ name, description }) => {
+  try {
+    // Check if the role already exists
+    const roleCheck = await pool.query('SELECT * FROM role WHERE name = $1', [
+      name,
+    ]);
+    if (roleCheck.rowCount > 0) {
+      throw new Error('El rol ya existe');
+    }
+
+    const result = await pool.query(
+      'INSERT INTO role (name, description) VALUES ($1, $2) RETURNING *',
+      [name, description],
+    );
+
+    // Check if the role was created successfully
+    if (result.rowCount === 0) {
+      throw new Error('Error al crear el rol');
+    }
+    return result.rows[0];
+  } catch (error) {
+    throw new Error(error.message || 'Error al crear el rol');
+  }
+};
+
+/**
+ * Retrieves all roles in the system.
+ *
+ * @returns {Promise&lt;Array>} An array of all roles.
+ * @throws {Error} Throws an error if roles cannot be retrieved.
+ */
+export const getRolesService = async () => {
+  try {
+    const result = await pool.query('SELECT * FROM role');
+    return result.rows;
+  } catch (error) {
+    throw new Error(error.message || 'Error al obtener los roles');
+  }
+};
+
+/**
+ * Retrieves the names of all employee roles.
+ *
+ * @returns {Promise&lt;Array>} An array of role names.
+ * @throws {Error} Throws an error if employee roles cannot be retrieved.
+ */
+export const getEmployeeRolesService = async () => {
+  try {
+    const result = await pool.query('SELECT * FROM role');
+    const rolesNames = result.rows.map((role) => role.name);
+    return rolesNames;
+  } catch (error) {
+    throw new Error(error.message || 'Error al obtener los roles de empleados');
+  }
+};
+
+/**
+ * Updates a role in the system.
+ *
+ * @param {number} roleId - The role ID to update.
+ * @param {Object} roleData - The role data to update.
+ * @param {string} roleData.name - The new name of the role.
+ * @param {string} roleData.description - The new description of the role.
+ * @returns {Promise&lt;Object>} The updated role data.
+ * @throws {Error} Throws an error if the role cannot be updated.
+ */
+export const updateRoleService = async (roleId, { name, description }) => {
+  try {
+    // Check if the role exists
+    const roleCheck = await pool.query('SELECT * FROM role WHERE id = $1', [
+      roleId,
+    ]);
+    if (roleCheck.rowCount === 0) {
+      throw new Error('El rol no existe');
+    }
+
+    // Check if the new role name already exists
+    const roleNameCheck = await pool.query(
+      'SELECT * FROM role WHERE name = $1 AND id != $2',
+      [name, roleId],
+    );
+    if (roleNameCheck.rowCount > 0) {
+      throw new Error('El rol ya existe');
+    }
+
+
+    // Update the role
+    const result = await pool.query(
+      'UPDATE role SET name = $1, description = $2 WHERE id = $3 RETURNING *',
+      [name, description, roleId],
+    );
+
+    // Check if the role was updated successfully
+    if (result.rowCount === 0) {
+      throw new Error('Error al actualizar el rol');
+    }
+    // Return the updated role
+    return result.rows[0];
+  } catch (error) {
+    throw new Error(error.message || 'Error al actualizar el rol');
+  }
+};
+
+/**
+ * Deletes a role from the system.
+ *
+ * @param {number} roleId - The role ID to delete.
+ * @returns {Promise&lt;void>} Resolves with no return value when the role is deleted.
+ * @throws {Error} Throws an error if the role cannot be deleted.
+ */
+export const deleteRoleService = async (roleId) => {
+  try {
+    // Check if the role exists
+    const roleCheck = await pool.query('SELECT * FROM role WHERE id = $1', [
+      roleId,
+    ]);
+    if (roleCheck.rowCount === 0) {
+      throw new Error('El rol no existe');
+    }
+    await pool.query('DELETE FROM role WHERE id = $1', [roleId]);
+  } catch (error) {
+    throw new Error(error.message || 'Error al eliminar el rol');
+  }
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#acceptTask">acceptTask</a></li><li><a href="global.html#acceptTaskService">acceptTaskService</a></li><li><a href="global.html#authRequired">authRequired</a></li><li><a href="global.html#calculateXPGamification">calculateXPGamification</a></li><li><a href="global.html#cancelStartedProcedure">cancelStartedProcedure</a></li><li><a href="global.html#cancelStartedProcedureService">cancelStartedProcedureService</a></li><li><a href="global.html#changePassword">changePassword</a></li><li><a href="global.html#changePasswordService">changePasswordService</a></li><li><a href="global.html#checkBucketAccess">checkBucketAccess</a></li><li><a href="global.html#checkDBConnection">checkDBConnection</a></li><li><a href="global.html#checkS3Connection">checkS3Connection</a></li><li><a href="global.html#createAccessToken">createAccessToken</a></li><li><a href="global.html#createAndSendNotificationService">createAndSendNotificationService</a></li><li><a href="global.html#createProcedure">createProcedure</a></li><li><a href="global.html#createProcedureService">createProcedureService</a></li><li><a href="global.html#createProcedureTask">createProcedureTask</a></li><li><a href="global.html#createProcedureTaskService">createProcedureTaskService</a></li><li><a href="global.html#createRole">createRole</a></li><li><a href="global.html#createRoleService">createRoleService</a></li><li><a href="global.html#createWorker">createWorker</a></li><li><a href="global.html#createWorkerService">createWorkerService</a></li><li><a href="global.html#deleteAllNotifications">deleteAllNotifications</a></li><li><a href="global.html#deleteAllNotificationsService">deleteAllNotificationsService</a></li><li><a href="global.html#deleteNotification">deleteNotification</a></li><li><a href="global.html#deleteNotificationService">deleteNotificationService</a></li><li><a href="global.html#deleteProcedure">deleteProcedure</a></li><li><a href="global.html#deleteProcedureService">deleteProcedureService</a></li><li><a href="global.html#deleteRole">deleteRole</a></li><li><a href="global.html#deleteRoleService">deleteRoleService</a></li><li><a href="global.html#deleteTask">deleteTask</a></li><li><a href="global.html#deleteTaskService">deleteTaskService</a></li><li><a href="global.html#deleteWorker">deleteWorker</a></li><li><a href="global.html#deleteWorkerService">deleteWorkerService</a></li><li><a href="global.html#forgotPassword">forgotPassword</a></li><li><a href="global.html#forgotPasswordService">forgotPasswordService</a></li><li><a href="global.html#getCompletedTasks">getCompletedTasks</a></li><li><a href="global.html#getCompletedTasksService">getCompletedTasksService</a></li><li><a href="global.html#getEmployeeRolesService">getEmployeeRolesService</a></li><li><a href="global.html#getEmployeeStatistics">getEmployeeStatistics</a></li><li><a href="global.html#getEmployeeStatisticsService">getEmployeeStatisticsService</a></li><li><a href="global.html#getGamificationLevels">getGamificationLevels</a></li><li><a href="global.html#getGamificationLevelsService">getGamificationLevelsService</a></li><li><a href="global.html#getLevelProgression">getLevelProgression</a></li><li><a href="global.html#getLevelProgressionService">getLevelProgressionService</a></li><li><a href="global.html#getMyStartedProcedures">getMyStartedProcedures</a></li><li><a href="global.html#getMyStartedProceduresService">getMyStartedProceduresService</a></li><li><a href="global.html#getNotifications">getNotifications</a></li><li><a href="global.html#getNotificationsService">getNotificationsService</a></li><li><a href="global.html#getPendingTaskService">getPendingTaskService</a></li><li><a href="global.html#getPendingTasks">getPendingTasks</a></li><li><a href="global.html#getProcedureTasks">getProcedureTasks</a></li><li><a href="global.html#getProcedureTasksService">getProcedureTasksService</a></li><li><a href="global.html#getProcedures">getProcedures</a></li><li><a href="global.html#getProceduresService">getProceduresService</a></li><li><a href="global.html#getRanking">getRanking</a></li><li><a href="global.html#getRankingService">getRankingService</a></li><li><a href="global.html#getRoles">getRoles</a></li><li><a href="global.html#getRolesService">getRolesService</a></li><li><a href="global.html#getStartedProcedureTasks">getStartedProcedureTasks</a></li><li><a href="global.html#getStartedProcedureTasksService">getStartedProcedureTasksService</a></li><li><a href="global.html#getStartedProcedures">getStartedProcedures</a></li><li><a href="global.html#getStartedProceduresService">getStartedProceduresService</a></li><li><a href="global.html#getStartedTaskByStatusService">getStartedTaskByStatusService</a></li><li><a href="global.html#getStartedTaskService">getStartedTaskService</a></li><li><a href="global.html#getTaskService">getTaskService</a></li><li><a href="global.html#getTasks">getTasks</a></li><li><a href="global.html#getTasksService">getTasksService</a></li><li><a href="global.html#getUserLevelService">getUserLevelService</a></li><li><a href="global.html#getWorkers">getWorkers</a></li><li><a href="global.html#getWorkersService">getWorkersService</a></li><li><a href="global.html#handleXPAndNotificationService">handleXPAndNotificationService</a></li><li><a href="global.html#initializeDatabase">initializeDatabase</a></li><li><a href="global.html#insertDatabaseData">insertDatabaseData</a></li><li><a href="global.html#loadTemplate">loadTemplate</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#loginService">loginService</a></li><li><a href="global.html#logout">logout</a></li><li><a href="global.html#logoutService">logoutService</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#markAllNotificationsAsRead">markAllNotificationsAsRead</a></li><li><a href="global.html#markAllNotificationsAsReadService">markAllNotificationsAsReadService</a></li><li><a href="global.html#markNotificationAsRead">markNotificationAsRead</a></li><li><a href="global.html#markNotificationAsReadService">markNotificationAsReadService</a></li><li><a href="global.html#profile">profile</a></li><li><a href="global.html#profileService">profileService</a></li><li><a href="global.html#rejectTask">rejectTask</a></li><li><a href="global.html#rejectTaskService">rejectTaskService</a></li><li><a href="global.html#resetPassword">resetPassword</a></li><li><a href="global.html#resetPasswordService">resetPasswordService</a></li><li><a href="global.html#selectEmployeeByRoleService">selectEmployeeByRoleService</a></li><li><a href="global.html#sendEmail">sendEmail</a></li><li><a href="global.html#sendLevelUpNotificationService">sendLevelUpNotificationService</a></li><li><a href="global.html#sendWebSocketNotificationService">sendWebSocketNotificationService</a></li><li><a href="global.html#setupDatabaseSchema">setupDatabaseSchema</a></li><li><a href="global.html#signup">signup</a></li><li><a href="global.html#signupService">signupService</a></li><li><a href="global.html#startProcedure">startProcedure</a></li><li><a href="global.html#startProcedureService">startProcedureService</a></li><li><a href="global.html#updateEmployeeXPService">updateEmployeeXPService</a></li><li><a href="global.html#updateProcedure">updateProcedure</a></li><li><a href="global.html#updateProcedureService">updateProcedureService</a></li><li><a href="global.html#updateProfile">updateProfile</a></li><li><a href="global.html#updateProfilePic">updateProfilePic</a></li><li><a href="global.html#updateProfilePicService">updateProfilePicService</a></li><li><a href="global.html#updateProfileService">updateProfileService</a></li><li><a href="global.html#updateRole">updateRole</a></li><li><a href="global.html#updateRoleService">updateRoleService</a></li><li><a href="global.html#updateStartedProcedureStatusService">updateStartedProcedureStatusService</a></li><li><a href="global.html#updateStartedTaskStatusService">updateStartedTaskStatusService</a></li><li><a href="global.html#updateTask">updateTask</a></li><li><a href="global.html#updateTaskService">updateTaskService</a></li><li><a href="global.html#updateWorker">updateWorker</a></li><li><a href="global.html#updateWorkerService">updateWorkerService</a></li><li><a href="global.html#uploadTask">uploadTask</a></li><li><a href="global.html#uploadTaskService">uploadTaskService</a></li><li><a href="global.html#validateSchema">validateSchema</a></li><li><a href="global.html#verifyRole">verifyRole</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Thu Apr 24 2025 18:36:05 GMT+0100 (hora de verano de Europa occidental)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

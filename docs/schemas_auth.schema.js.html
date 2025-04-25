@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: schemas/auth.schema.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: schemas/auth.schema.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { z } from 'zod';
+
+/**
+ * Schema for user registration (signup).
+ * Validates the user's username, email, password, gender, and optional phone number.
+ *
+ * @typedef {Object} SignupData
+ * @property {string} username - The username of the user.
+ * @property {string} email - The email of the user.
+ * @property {string} password - The password of the user.
+ * @property {string} gender - The gender of the user ('male' or 'female').
+ * @property {string} [phone] - The optional phone number of the user.
+ */
+export const signupSchema = z.object({
+  username: z.string().min(1, { message: 'El nombre de usuario es requerido' }),
+  email: z.string().email({ message: 'El correo electrónico debe ser válido' }),
+  password: z
+    .string()
+    .min(5, { message: 'La contraseña debe tener al menos 5 caracteres' }),
+  gender: z.enum(['male', 'female'], {
+    errorMap: () => ({ message: "El género debe ser 'male' o 'female'" }),
+  }),
+  phone: z.string().optional(),
+});
+
+/**
+ * Schema for user login.
+ * Validates the user's email and password.
+ *
+ * @typedef {Object} LoginData
+ * @property {string} email - The email of the user.
+ * @property {string} password - The password of the user.
+ */
+export const loginSchema = z.object({
+  email: z.string().email({ message: 'El correo electrónico debe ser válido' }),
+  password: z.string().min(1, { message: 'La contraseña es requerida' }),
+});
+
+/**
+ * Schema for updating user profile.
+ * Validates the user's username, email, and optional phone number.
+ *
+ * @typedef {Object} UpdateProfileData
+ * @property {string} username - The username of the user.
+ * @property {string} email - The email of the user.
+ * @property {string} [phone] - The optional phone number of the user.
+ */
+export const updateProfileSchema = z.object({
+  username: z.string().min(1, { message: 'El nombre de usuario es requerido' }),
+  email: z.string().email({ message: 'El correo electrónico debe ser válido' }),
+  phone: z.string().optional(),
+});
+
+/**
+ * Schema for changing user password.
+ * Validates old password, new password, and confirms if new passwords match.
+ *
+ * @typedef {Object} ChangePasswordData
+ * @property {string} oldPassword - The old password of the user.
+ * @property {string} newPassword - The new password of the user.
+ * @property {string} confirmPassword - The confirmation of the new password.
+ */
+export const changePasswordSchema = z
+  .object({
+    oldPassword: z
+      .string()
+      .min(1, { message: 'La contraseña actual es requerida' }),
+    newPassword: z.string().min(5, {
+      message: 'La nueva contraseña debe tener al menos 5 caracteres',
+    }),
+    confirmPassword: z
+      .string()
+      .min(1, { message: 'La confirmación de la contraseña es requerida' }),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Las contraseñas no coinciden',
+    path: ['confirmPassword'],
+  })
+  .refine((data) => data.oldPassword !== data.newPassword, {
+    message: 'La nueva contraseña debe ser diferente a la contraseña actual',
+    path: ['newPassword'],
+  });
+
+/**
+ * Schema for creating an admin.
+ * Validates the admin's username, email, and password.
+ *
+ * @typedef {Object} CreateAdminData
+ * @property {string} username - The admin's username.
+ * @property {string} email - The admin's email.
+ * @property {string} password - The admin's password.
+ */
+export const createAdminSchema = z.object({
+  username: z.string().min(1, { message: 'El nombre de usuario es requerido' }),
+  email: z.string().email({ message: 'El correo electrónico debe ser válido' }),
+  password: z
+    .string()
+    .min(5, { message: 'La contraseña debe tener al menos 5 caracteres' }),
+});
+
+/**
+ * Schema for a forgot password request.
+ * Validates that a valid email address is provided.
+ *
+ * @typedef {Object} ForgotPasswordData
+ * @property {string} email - The user's email address.
+ */
+export const forgotPasswordSchema = z.object({
+  email: z.string().email({ message: 'El correo electrónico debe ser válido' }),
+});
+
+/**
+ * Schema for a reset password request.
+ * Validates that the new password is at least 5 characters long.
+ *
+ * @typedef {Object} ResetPasswordData
+ * @property {string} password - The new password.
+ */
+export const resetPasswordSchema = z.object({
+  password: z
+    .string()
+    .min(5, { message: 'La contraseña debe tener al menos 5 caracteres' }),
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#acceptTask">acceptTask</a></li><li><a href="global.html#acceptTaskService">acceptTaskService</a></li><li><a href="global.html#authRequired">authRequired</a></li><li><a href="global.html#calculateXPGamification">calculateXPGamification</a></li><li><a href="global.html#cancelStartedProcedure">cancelStartedProcedure</a></li><li><a href="global.html#cancelStartedProcedureService">cancelStartedProcedureService</a></li><li><a href="global.html#changePassword">changePassword</a></li><li><a href="global.html#changePasswordService">changePasswordService</a></li><li><a href="global.html#checkBucketAccess">checkBucketAccess</a></li><li><a href="global.html#checkDBConnection">checkDBConnection</a></li><li><a href="global.html#checkS3Connection">checkS3Connection</a></li><li><a href="global.html#createAccessToken">createAccessToken</a></li><li><a href="global.html#createAndSendNotificationService">createAndSendNotificationService</a></li><li><a href="global.html#createProcedure">createProcedure</a></li><li><a href="global.html#createProcedureService">createProcedureService</a></li><li><a href="global.html#createProcedureTask">createProcedureTask</a></li><li><a href="global.html#createProcedureTaskService">createProcedureTaskService</a></li><li><a href="global.html#createRole">createRole</a></li><li><a href="global.html#createRoleService">createRoleService</a></li><li><a href="global.html#createWorker">createWorker</a></li><li><a href="global.html#createWorkerService">createWorkerService</a></li><li><a href="global.html#deleteAllNotifications">deleteAllNotifications</a></li><li><a href="global.html#deleteAllNotificationsService">deleteAllNotificationsService</a></li><li><a href="global.html#deleteNotification">deleteNotification</a></li><li><a href="global.html#deleteNotificationService">deleteNotificationService</a></li><li><a href="global.html#deleteProcedure">deleteProcedure</a></li><li><a href="global.html#deleteProcedureService">deleteProcedureService</a></li><li><a href="global.html#deleteRole">deleteRole</a></li><li><a href="global.html#deleteRoleService">deleteRoleService</a></li><li><a href="global.html#deleteTask">deleteTask</a></li><li><a href="global.html#deleteTaskService">deleteTaskService</a></li><li><a href="global.html#deleteWorker">deleteWorker</a></li><li><a href="global.html#deleteWorkerService">deleteWorkerService</a></li><li><a href="global.html#forgotPassword">forgotPassword</a></li><li><a href="global.html#forgotPasswordService">forgotPasswordService</a></li><li><a href="global.html#getCompletedTasks">getCompletedTasks</a></li><li><a href="global.html#getCompletedTasksService">getCompletedTasksService</a></li><li><a href="global.html#getEmployeeRolesService">getEmployeeRolesService</a></li><li><a href="global.html#getEmployeeStatistics">getEmployeeStatistics</a></li><li><a href="global.html#getEmployeeStatisticsService">getEmployeeStatisticsService</a></li><li><a href="global.html#getGamificationLevels">getGamificationLevels</a></li><li><a href="global.html#getGamificationLevelsService">getGamificationLevelsService</a></li><li><a href="global.html#getLevelProgression">getLevelProgression</a></li><li><a href="global.html#getLevelProgressionService">getLevelProgressionService</a></li><li><a href="global.html#getMyStartedProcedures">getMyStartedProcedures</a></li><li><a href="global.html#getMyStartedProceduresService">getMyStartedProceduresService</a></li><li><a href="global.html#getNotifications">getNotifications</a></li><li><a href="global.html#getNotificationsService">getNotificationsService</a></li><li><a href="global.html#getPendingTaskService">getPendingTaskService</a></li><li><a href="global.html#getPendingTasks">getPendingTasks</a></li><li><a href="global.html#getProcedureTasks">getProcedureTasks</a></li><li><a href="global.html#getProcedureTasksService">getProcedureTasksService</a></li><li><a href="global.html#getProcedures">getProcedures</a></li><li><a href="global.html#getProceduresService">getProceduresService</a></li><li><a href="global.html#getRanking">getRanking</a></li><li><a href="global.html#getRankingService">getRankingService</a></li><li><a href="global.html#getRoles">getRoles</a></li><li><a href="global.html#getRolesService">getRolesService</a></li><li><a href="global.html#getStartedProcedureTasks">getStartedProcedureTasks</a></li><li><a href="global.html#getStartedProcedureTasksService">getStartedProcedureTasksService</a></li><li><a href="global.html#getStartedProcedures">getStartedProcedures</a></li><li><a href="global.html#getStartedProceduresService">getStartedProceduresService</a></li><li><a href="global.html#getStartedTaskByStatusService">getStartedTaskByStatusService</a></li><li><a href="global.html#getStartedTaskService">getStartedTaskService</a></li><li><a href="global.html#getTaskService">getTaskService</a></li><li><a href="global.html#getTasks">getTasks</a></li><li><a href="global.html#getTasksService">getTasksService</a></li><li><a href="global.html#getUserLevelService">getUserLevelService</a></li><li><a href="global.html#getWorkers">getWorkers</a></li><li><a href="global.html#getWorkersService">getWorkersService</a></li><li><a href="global.html#handleXPAndNotificationService">handleXPAndNotificationService</a></li><li><a href="global.html#initializeDatabase">initializeDatabase</a></li><li><a href="global.html#insertDatabaseData">insertDatabaseData</a></li><li><a href="global.html#loadTemplate">loadTemplate</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#loginService">loginService</a></li><li><a href="global.html#logout">logout</a></li><li><a href="global.html#logoutService">logoutService</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#markAllNotificationsAsRead">markAllNotificationsAsRead</a></li><li><a href="global.html#markAllNotificationsAsReadService">markAllNotificationsAsReadService</a></li><li><a href="global.html#markNotificationAsRead">markNotificationAsRead</a></li><li><a href="global.html#markNotificationAsReadService">markNotificationAsReadService</a></li><li><a href="global.html#profile">profile</a></li><li><a href="global.html#profileService">profileService</a></li><li><a href="global.html#rejectTask">rejectTask</a></li><li><a href="global.html#rejectTaskService">rejectTaskService</a></li><li><a href="global.html#resetPassword">resetPassword</a></li><li><a href="global.html#resetPasswordService">resetPasswordService</a></li><li><a href="global.html#selectEmployeeByRoleService">selectEmployeeByRoleService</a></li><li><a href="global.html#sendEmail">sendEmail</a></li><li><a href="global.html#sendLevelUpNotificationService">sendLevelUpNotificationService</a></li><li><a href="global.html#sendWebSocketNotificationService">sendWebSocketNotificationService</a></li><li><a href="global.html#setupDatabaseSchema">setupDatabaseSchema</a></li><li><a href="global.html#signup">signup</a></li><li><a href="global.html#signupService">signupService</a></li><li><a href="global.html#startProcedure">startProcedure</a></li><li><a href="global.html#startProcedureService">startProcedureService</a></li><li><a href="global.html#updateEmployeeXPService">updateEmployeeXPService</a></li><li><a href="global.html#updateProcedure">updateProcedure</a></li><li><a href="global.html#updateProcedureService">updateProcedureService</a></li><li><a href="global.html#updateProfile">updateProfile</a></li><li><a href="global.html#updateProfilePic">updateProfilePic</a></li><li><a href="global.html#updateProfilePicService">updateProfilePicService</a></li><li><a href="global.html#updateProfileService">updateProfileService</a></li><li><a href="global.html#updateRole">updateRole</a></li><li><a href="global.html#updateRoleService">updateRoleService</a></li><li><a href="global.html#updateStartedProcedureStatusService">updateStartedProcedureStatusService</a></li><li><a href="global.html#updateStartedTaskStatusService">updateStartedTaskStatusService</a></li><li><a href="global.html#updateTask">updateTask</a></li><li><a href="global.html#updateTaskService">updateTaskService</a></li><li><a href="global.html#updateWorker">updateWorker</a></li><li><a href="global.html#updateWorkerService">updateWorkerService</a></li><li><a href="global.html#uploadTask">uploadTask</a></li><li><a href="global.html#uploadTaskService">uploadTaskService</a></li><li><a href="global.html#validateSchema">validateSchema</a></li><li><a href="global.html#verifyRole">verifyRole</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Thu Apr 24 2025 18:36:05 GMT+0100 (hora de verano de Europa occidental)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

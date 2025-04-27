@@ -36,7 +36,7 @@ router.put(
 );
 router.delete('/:taskId', verifyRole(['Administrador']), deleteTask);
 
-router.get('/', verifyRole(['Empleado']), getTasks);
+router.get('/', verifyRole(['Empleado', 'Administrador']), getTasks);
 router.get('/pending', verifyRole(['Empleado']), getPendingTasks);
 router.get('/completed', verifyRole(['Empleado']), getCompletedTasks);
 

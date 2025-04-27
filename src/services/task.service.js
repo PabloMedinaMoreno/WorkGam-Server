@@ -123,19 +123,31 @@ export const getCompletedTasksService = async (employeeId) => {
  * @returns {Promise<Object>} The updated started task.
  * @throws {Error} Throws an error if the task cannot be completed.
  */
-export const acceptTaskService = async (startedTaskId, employeeId, socketId, io) => {
+export const acceptTaskService = async (
+  startedTaskId,
+  employeeId,
+  socketId,
+  io,
+) => {
   try {
     // Verify that the task is pending and belongs to the employee
-    const startedTask = await getStartedTaskByStatusService(startedTaskId, employeeId, 'pending');
+    const startedTask = await getStartedTaskByStatusService(
+      startedTaskId,
+      employeeId,
+      'pending',
+    );
 
     // Update the task status to "completed"
-    const updatedStartedTask = await updateStartedTaskStatusService(startedTaskId, 'completed');
+    const updatedStartedTask = await updateStartedTaskStatusService(
+      startedTaskId,
+      'completed',
+    );
 
     // Check if the task is completed and update the procedure status accordingly
 
     // Get the number of completed tasks for the started procedure
     const completedTasks = await pool.query(
-      'SELECT COUNT(*) FROM started_task WHERE started_procedure_id = $1 AND status = \'completed\'',
+      "SELECT COUNT(*) FROM started_task WHERE started_procedure_id = $1 AND status = 'completed'",
       [startedTask.started_procedure_id],
     );
 
@@ -177,7 +189,10 @@ export const acceptTaskService = async (startedTaskId, employeeId, socketId, io)
     let newStartedProcedureStatus = 'in_progress';
 
     // Check if all tasks are completed
-    if (parseInt(completedTasks.rows[0].count) === parseInt(totalTasks.rows[0].count)) {
+    if (
+      parseInt(completedTasks.rows[0].count) ===
+      parseInt(totalTasks.rows[0].count)
+    ) {
       // If all tasks are completed, update the procedure status to "completed" and notify the client
       newStartedProcedureStatus = 'completed';
 
@@ -193,7 +208,6 @@ export const acceptTaskService = async (startedTaskId, employeeId, socketId, io)
         startedProcedure.rows[0].client_id,
         `El procedimiento "${procedure.rows[0].name}" ha sido completado`,
       );
-
     }
 
     // Update the procedure status
@@ -231,14 +245,29 @@ export const acceptTaskService = async (startedTaskId, employeeId, socketId, io)
  * @returns {Promise<Object>} The updated started task.
  * @throws {Error} Throws an error if the task cannot be rejected.
  */
-export const rejectTaskService = async (startedTaskId, employeeId, reason, socketId, io) => {
+export const rejectTaskService = async (
+  startedTaskId,
+  employeeId,
+  reason,
+  socketId,
+  io,
+) => {
   try {
-    const startedTask = await getStartedTaskByStatusService(startedTaskId, employeeId, 'pending');
-    const updatedTask = await updateStartedTaskStatusService(startedTaskId, 'rejected', reason);
+    const startedTask = await getStartedTaskByStatusService(
+      startedTaskId,
+      employeeId,
+      'pending',
+    );
+    const updatedTask = await updateStartedTaskStatusService(
+      startedTaskId,
+      'rejected',
+      reason,
+    );
 
     // Update the procedure status to "in_progress" if the task is rejected
     await updateStartedProcedureStatusService(
-      startedTask.started_procedure_id, 'in_progress',
+      startedTask.started_procedure_id,
+      'in_progress',
     );
 
     const clientId = await pool.query(
@@ -246,10 +275,9 @@ export const rejectTaskService = async (startedTaskId, employeeId, reason, socke
       [startedTask.started_procedure_id],
     );
 
-    const taskName = await pool.query(
-      'SELECT name FROM task WHERE id = $1',
-      [startedTask.task_id],
-    );
+    const taskName = await pool.query('SELECT name FROM task WHERE id = $1', [
+      startedTask.task_id,
+    ]);
 
     // Notify the client about the task rejection
     await createAndSendNotificationService(
@@ -293,20 +321,65 @@ export const rejectTaskService = async (startedTaskId, employeeId, reason, socke
  */
 export const updateTaskService = async (
   taskId,
-  { name, description, xp, procedure_id, role_id, estimated_duration_days, difficulty },
+  {
+    name,
+    description,
+    xp,
+    procedure_id,
+    role_id,
+    estimated_duration_days,
+    difficulty,
+  },
 ) => {
   try {
     // Verify that the task exists
     await getTaskService(taskId);
+    // Check if the procedure exists
+    const procedureCheck = await pool.query(
+      'SELECT * FROM procedure WHERE id = $1',
+      [procedure_id],
+    );
+
+    if (procedureCheck.rowCount === 0) {
+      throw new Error('Procedimiento no encontrado');
+    }
+
+    // Check if the task name already exists for the procedure
+    const taskNameCheck = await pool.query(
+      'SELECT * FROM task WHERE name = $1 AND procedure_id = $2 AND id != $3',
+      [name, procedure_id, taskId],
+    );
+    if (taskNameCheck.rowCount > 0) {
+      throw new Error(
+        'Ya existe una tarea con este nombre para este procedimiento',
+      );
+    }
+
+    // Check if the role exists
+    const roleCheck = await pool.query('SELECT * FROM role WHERE id = $1', [
+      role_id,
+    ]);
+    if (roleCheck.rowCount === 0) {
+      throw new Error('Rol no encontrado');
+    }
     // Update the task details
     const updatedTask = await pool.query(
       'UPDATE task SET name = $1, description = $2, xp = $3, procedure_id = $4, role_id = $5, estimated_duration_days = $6, difficulty = $7 WHERE id = $8 RETURNING *',
-      [name, description, xp, procedure_id, role_id, estimated_duration_days, difficulty, taskId],
+      [
+        name,
+        description,
+        xp,
+        procedure_id,
+        role_id,
+        estimated_duration_days,
+        difficulty,
+        taskId,
+      ],
     );
     return updatedTask.rows[0];
   } catch (error) {
     console.error('Error al actualizar la tarea:', error);
-    throw new Error('Error al actualizar la tarea: ' + error.message);
+    throw new Error(error.message || 'Error al actualizar la tarea');
   }
 };
 
@@ -323,7 +396,7 @@ export const deleteTaskService = async (taskId) => {
     await pool.query('DELETE FROM task WHERE id = $1', [taskId]);
   } catch (error) {
     console.error('Error al eliminar la tarea:', error);
-    throw new Error('Error al eliminar la tarea');
+    throw new Error(error.message || 'Error al eliminar la tarea');
   }
 };
 
@@ -337,9 +410,16 @@ export const deleteTaskService = async (taskId) => {
  * @returns {Promise<Object>} The started task.
  * @throws {Error} Throws an error if the document upload fails or if the task assignment fails.
  */
-export const uploadTaskService = async (clientId, startedProcedureId, taskId, file) => {
+export const uploadTaskService = async (
+  clientId,
+  startedProcedureId,
+  taskId,
+  file,
+) => {
   try {
-    if (!file) {throw new Error('No se ha subido ningún archivo');}
+    if (!file) {
+      throw new Error('No se ha subido ningún archivo');
+    }
 
     const documentUrl = file.location;
 
@@ -374,7 +454,9 @@ export const uploadTaskService = async (clientId, startedProcedureId, taskId, fi
 
     const roleId = taskCheck.rows[0].role_id;
     const employeeId = await selectEmployeeByRoleService(roleId);
-    if (!employeeId) {throw new Error('No se encontró un empleado disponible');}
+    if (!employeeId) {
+      throw new Error('No se encontró un empleado disponible');
+    }
 
     const status = 'pending';
 
@@ -408,14 +490,16 @@ export const uploadTaskService = async (clientId, startedProcedureId, taskId, fi
  */
 export const getTaskService = async (taskId) => {
   try {
-    const result = await pool.query('SELECT * FROM task WHERE id = $1', [taskId]);
+    const result = await pool.query('SELECT * FROM task WHERE id = $1', [
+      taskId,
+    ]);
     if (result.rowCount === 0) {
-      throw new Error(`Tarea con ID ${taskId} no encontrada`);
+      throw new Error('Tarea no encontrada');
     }
     return result.rows[0];
   } catch (error) {
     console.error('Error al obtener la información de la tarea:', error);
-    throw new Error('Error al obtener la información de la tarea: ' + error.message);
+    throw error;
   }
 };
 
@@ -428,14 +512,22 @@ export const getTaskService = async (taskId) => {
  */
 export const getStartedTaskService = async (startedTaskId) => {
   try {
-    const result = await pool.query('SELECT * FROM started_task WHERE id = $1', [startedTaskId]);
+    const result = await pool.query(
+      'SELECT * FROM started_task WHERE id = $1',
+      [startedTaskId],
+    );
     if (result.rowCount === 0) {
       throw new Error(`Tarea iniciada con ID ${startedTaskId} no encontrada`);
     }
     return result.rows[0];
   } catch (error) {
-    console.error('Error al obtener la información de la tarea iniciada:', error);
-    throw new Error('Error al obtener la información de la tarea iniciada: ' + error.message);
+    console.error(
+      'Error al obtener la información de la tarea iniciada:',
+      error,
+    );
+    throw new Error(
+      'Error al obtener la información de la tarea iniciada: ' + error.message,
+    );
   }
 };
 
@@ -448,7 +540,11 @@ export const getStartedTaskService = async (startedTaskId) => {
  * @returns {Promise<Object>} The started task data.
  * @throws {Error} Throws an error if the task is not found or not pending for this employee.
  */
-export const getStartedTaskByStatusService = async (startedTaskId, employeeId, expectedStatus) => {
+export const getStartedTaskByStatusService = async (
+  startedTaskId,
+  employeeId,
+  expectedStatus,
+) => {
   const taskQuery = await pool.query(
     `SELECT * FROM started_task
      WHERE id = $1 AND employee_id = $2 AND status = $3`,
@@ -456,7 +552,9 @@ export const getStartedTaskByStatusService = async (startedTaskId, employeeId, e
   );
 
   if (taskQuery.rowCount === 0) {
-    throw new Error('Tarea no encontrada o no está pendiente para este empleado');
+    throw new Error(
+      'Tarea no encontrada o no está pendiente para este empleado',
+    );
   }
 
   return taskQuery.rows[0];
@@ -471,7 +569,11 @@ export const getStartedTaskByStatusService = async (startedTaskId, employeeId, e
  * @returns {Promise<Object>} The updated started task.
  * @throws {Error} Throws an error if the task status cannot be updated.
  */
-export const updateStartedTaskStatusService = async (startedTaskId, status, reason = null) => {
+export const updateStartedTaskStatusService = async (
+  startedTaskId,
+  status,
+  reason = null,
+) => {
   const query = `
     UPDATE started_task
     SET status = $1, end_date = $2, rejected_reason = $3

@@ -32,8 +32,8 @@ export const signup = async (req, res) => {
     await createAndSendNotificationService(user.id, '¡Bienvenido a la plataforma!');
 
     res.cookie('token', token, {
-      httpOnly: true,
-      secure: NODE_ENV === 'production', 
+      httpOnly: true, // Esto asegura que la cookie no sea accesible desde JavaScript del lado del cliente
+      secure: NODE_ENV === 'production', // Esto asegura que la cookie solo se envíe a través de HTTPS
       sameSite: 'None',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
     });

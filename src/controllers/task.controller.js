@@ -146,6 +146,9 @@ export const deleteTask = async (req, res) => {
     await deleteTaskService(taskId);
     res.status(204).send();
   } catch (error) {
+    if (error.message === 'Tarea no encontrada') {
+      return res.status(404).json({ message: error.message });
+    }
     console.error('Error al eliminar la tarea:', error);
     res.status(500).json({ message: 'Error al eliminar la tarea' });
   }
@@ -219,7 +222,9 @@ export const updateTask = async (req, res) => {
     });
     res.status(200).json(updatedTask);
   } catch (error) {
-    console.error('Error al actualizar la tarea:', error);
+    if (error.message === 'Tarea no encontrada') {
+      return res.status(404).json({ message: error.message });
+    }
     res.status(500).json({ message: 'Error al actualizar la tarea' });
   }
 };

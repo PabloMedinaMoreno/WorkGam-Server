@@ -12,10 +12,10 @@ describe('AUTH: /roles', () => {
     const res = await request(app).get(`${baseUrl}/`);
 
     expect(res.statusCode).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true); // Comprobamos que es un array de roles
-    expect(res.body.length).toBe(1); // Comprobamos que hay al menos un rol
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBe(1);
     expect(res.body[0]).toHaveProperty('id');
-    expect(res.body[0]).toHaveProperty('name', 'Administrador'); // Comprobamos que el rol tiene el nombre "Administrador"
+    expect(res.body[0]).toHaveProperty('name', 'Administrador');
     expect(res.body[0]).toHaveProperty('description');
   });
 });
@@ -24,12 +24,11 @@ describe('AUTH: /roles (crear, actualizar, eliminar)', () => {
   let loginCookie;
 
   beforeAll(async () => {
-    // Primero nos logueamos como Administrador para realizar pruebas en las rutas protegidas
     const loginRes = await request(app).post('/api/auth/login').send({
       email: 'admin@workgam.com',
       password: '12345',
     });
-    loginCookie = loginRes.headers['set-cookie']; // Obtenemos la cookie del login
+    loginCookie = loginRes.headers['set-cookie'];
   });
 
   it('debería crear un nuevo rol', async () => {
@@ -50,13 +49,11 @@ describe('AUTH: /roles (crear, actualizar, eliminar)', () => {
   });
 
   it('debería retornar un error 409 si el rol ya existe', async () => {
-    // Creamos un rol existente
     await request(app).post(`${baseUrl}/`).set('Cookie', loginCookie).send({
       name: 'Rol Existente',
       description: 'Este rol ya existe',
     });
 
-    // Intentamos crear el mismo rol
     const res = await request(app)
       .post(`${baseUrl}/`)
       .set('Cookie', loginCookie)
@@ -70,7 +67,6 @@ describe('AUTH: /roles (crear, actualizar, eliminar)', () => {
   });
 
   it('debería actualizar un rol correctamente', async () => {
-    // Primero creamos un rol
     const roleRes = await request(app)
       .post(`${baseUrl}/`)
       .set('Cookie', loginCookie)
@@ -85,7 +81,6 @@ describe('AUTH: /roles (crear, actualizar, eliminar)', () => {
       description: 'Descripción actualizada del rol',
     };
 
-    // Actualizamos el rol
     const res = await request(app)
       .put(`${baseUrl}/${roleId}`)
       .set('Cookie', loginCookie)
@@ -98,7 +93,6 @@ describe('AUTH: /roles (crear, actualizar, eliminar)', () => {
   });
 
   it('debería retornar un error 409 si el rol a actualizar ya existe', async () => {
-    // Creamos dos roles
     const role1 = await request(app)
       .post(`${baseUrl}/`)
       .set('Cookie', loginCookie)
@@ -109,7 +103,6 @@ describe('AUTH: /roles (crear, actualizar, eliminar)', () => {
       .set('Cookie', loginCookie)
       .send({ name: 'Rol 2', description: 'Descripción del rol 2' });
 
-    // Intentamos actualizar el rol1 con el nombre del rol2 (esto debería fallar)
     const res = await request(app)
       .put(`${baseUrl}/${role1.body.id}`)
       .set('Cookie', loginCookie)
@@ -120,7 +113,6 @@ describe('AUTH: /roles (crear, actualizar, eliminar)', () => {
   });
 
   it('debería eliminar un rol correctamente', async () => {
-    // Creamos un rol para eliminar
     const resCreate = await request(app)
       .post(`${baseUrl}/`)
       .set('Cookie', loginCookie)
@@ -133,8 +125,6 @@ describe('AUTH: /roles (crear, actualizar, eliminar)', () => {
 
     const roleId = resCreate.body.id;
 
-
-    // Eliminamos el rol
     const resDelete = await request(app)
       .delete(`${baseUrl}/${roleId}`)
       .set('Cookie', loginCookie);
@@ -144,7 +134,7 @@ describe('AUTH: /roles (crear, actualizar, eliminar)', () => {
 
   it('debería retornar un error 404 al intentar eliminar un rol que no existe', async () => {
     const res = await request(app)
-      .delete(`${baseUrl}/999999`) // Un ID de rol inexistente
+      .delete(`${baseUrl}/999999`)
       .set('Cookie', loginCookie);
 
     expect(res.statusCode).toBe(404);

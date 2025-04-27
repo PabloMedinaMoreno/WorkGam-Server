@@ -27,7 +27,6 @@ describe('AUTH: /signup', () => {
   });
 
   it('debería retornar un error 409 si el email ya está registrado', async () => {
-    // Primero registramos un usuario
     await request(app).post(`${baseUrl}/signup`).send({
       username: 'user1',
       email: 'test@example.com',
@@ -36,7 +35,6 @@ describe('AUTH: /signup', () => {
       phone: '123456789',
     });
 
-    // Intentamos registrar otro usuario con el mismo email
     const res = await request(app).post(`${baseUrl}/signup`).send({
       username: 'user2',
       email: 'test@example.com',
@@ -207,7 +205,7 @@ describe('AUTH: /forgot-password', () => {
     expect(res.body.message).toBe(
       'El enlace para restablecer tu contraseña ha sido enviado',
     );
-    expect(res.body).toHaveProperty('token'); // Verifica que el token se envíe
+    expect(res.body).toHaveProperty('token');
   });
 
   it('debería retornar un error 400 si el email no existe', async () => {

@@ -16,7 +16,7 @@ export const getNotificationsService = async (personId) => {
     return result.rows;
   } catch (error) {
     console.error('Error al obtener las notificaciones en el servicio:', error);
-    throw new Error('Error al obtener las notificaciones');
+    throw new Error(error.message || 'Error al obtener las notificaciones');
   }
 };
 
@@ -67,7 +67,7 @@ export const markAllNotificationsAsReadService = async (personId) => {
       'Error al marcar todas las notificaciones como leídas en el servicio:',
       error,
     );
-    throw new Error('Error al marcar todas las notificaciones como leídas');
+    throw new Error(error.message || 'Error al marcar todas las notificaciones como leídas');
   }
 };
 
@@ -179,7 +179,7 @@ export const deleteNotificationService = async (notificationId) => {
     }
   } catch (error) {
     console.error('Error al eliminar la notificación en el servicio:', error);
-    throw new Error('Error al eliminar la notificación');
+    throw new Error(error.message || 'Error al eliminar la notificación');
   }
 
   // If the notification was deleted successfully, return a success message
@@ -206,7 +206,7 @@ export const deleteAllNotificationsService = async (personId) => {
       'Error al eliminar todas las notificaciones en el servicio:',
       error,
     );
-    throw new Error('Error al eliminar todas las notificaciones');
+    throw new Error(error.message || 'Error al eliminar todas las notificaciones');
   }
 
   // If the notifications were deleted successfully, return a success message

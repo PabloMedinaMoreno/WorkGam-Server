@@ -71,7 +71,7 @@ export const getEmployeeStatisticsService = async (employeeId) => {
   );
 
   if (statisticsQuery.rowCount === 0) {
-    throw new Error('Statistics not found');
+    throw new Error('No se encontraron estadísticas para el empleado');
   }
 
   const tasksCompleted = await pool.query(
@@ -135,7 +135,7 @@ export const handleXPAndNotificationService = async (
   const currentXP = currentXPResult.rows[0].xp_total;
 
   if (currentXP === undefined) {
-    throw new Error('Current XP not found for the employee');
+    throw new Error('No se encontró XP para el empleado');
   }
 
   // Get current level of the employee

@@ -19,7 +19,11 @@ export const getNotifications = async (req, res) => {
     res.status(200).json(notifications);
   } catch (error) {
     console.error('Error in getNotifications controller:', error);
-    res.status(500).json({ message: error.message || 'Error al obtener las notificaciones' });
+    res
+      .status(500)
+      .json({
+        message: error.message || 'Error al obtener las notificaciones',
+      });
   }
 };
 
@@ -32,14 +36,20 @@ export const getNotifications = async (req, res) => {
 export const markNotificationAsRead = async (req, res) => {
   try {
     const { notificationId } = req.params;
-    const updatedNotification = await markNotificationAsReadService(notificationId);
+    const updatedNotification = await markNotificationAsReadService(
+      notificationId,
+    );
     res.status(200).json(updatedNotification);
   } catch (error) {
     console.error('Error in markNotificationAsRead controller:', error);
     if (error.message === 'Notificación no encontrada') {
       return res.status(404).json({ message: error.message });
     }
-    res.status(500).json({ message: error.message || 'Error al marcar la notificación como leída' });
+    res
+      .status(500)
+      .json({
+        message: error.message || 'Error al marcar la notificación como leída',
+      });
   }
 };
 
@@ -52,11 +62,19 @@ export const markNotificationAsRead = async (req, res) => {
 export const markAllNotificationsAsRead = async (req, res) => {
   try {
     const personId = req.user.id;
-    const updatedNotifications = await markAllNotificationsAsReadService(personId);
+    const updatedNotifications = await markAllNotificationsAsReadService(
+      personId,
+    );
     res.status(200).json(updatedNotifications);
   } catch (error) {
     console.error('Error in markAllNotificationsAsRead controller:', error);
-    res.status(500).json({ message: error.message || 'Error al marcar todas las notificaciones como leídas' });
+    res
+      .status(500)
+      .json({
+        message:
+          error.message ||
+          'Error al marcar todas las notificaciones como leídas',
+      });
   }
 };
 
@@ -76,7 +94,9 @@ export const deleteNotification = async (req, res) => {
     if (error.message === 'Notificación no encontrada') {
       return res.status(404).json({ message: error.message });
     }
-    res.status(500).json({ message: error.message || 'Error al eliminar la notificación' });
+    res
+      .status(500)
+      .json({ message: error.message || 'Error al eliminar la notificación' });
   }
 };
 
@@ -93,8 +113,10 @@ export const deleteAllNotifications = async (req, res) => {
     res.status(200).json(deletedNotifications);
   } catch (error) {
     console.error('Error in deleteAllNotifications controller:', error);
-    res.status(500).json({ message: error.message || 'Error al eliminar todas las notificaciones' });
+    res
+      .status(500)
+      .json({
+        message: error.message || 'Error al eliminar todas las notificaciones',
+      });
   }
 };
-
-

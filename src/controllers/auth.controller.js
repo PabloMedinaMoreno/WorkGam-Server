@@ -1,7 +1,6 @@
 import {
   signupService,
   loginService,
-  logoutService,
   profileService,
   updateProfileService,
   updateProfilePicService,
@@ -33,7 +32,7 @@ export const signup = async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'None',
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -66,7 +65,7 @@ export const login = async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: true,
-      sameSite: 'None',
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -94,7 +93,11 @@ export const login = async (req, res) => {
  */
 export const logout = async (req, res) => {
   try {
-    await logoutService(req);
+    res.cookie("token", "", {
+      httpOnly: true,
+      secure: true,
+      expires: new Date(0),
+    });
     res.status(200).json({ message: 'Sesión cerrada exitosamente' });
   } catch (error) {
     res.status(500).json({ message: error.message });

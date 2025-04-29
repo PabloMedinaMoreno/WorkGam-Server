@@ -139,20 +139,6 @@ export const loginService = async ({ email, password }) => {
   }
 };
 
-/**
- * Logs out a user (clears the cookie).
- *
- * @param {Object} req - The HTTP request object.
- * @throws {Error} Throws an error if an error occurs while logging out.
- */
-export const logoutService = async (req) => {
-  try {
-    // Note: Ensure that the "res" object is also passed if you need to clear the cookie from the service.
-    req.res.clearCookie('token');
-  } catch (error) {
-    throw new Error(error.message || 'Error al cerrar sesión');
-  }
-};
 
 /**
  * Retrieves the profile of a user.

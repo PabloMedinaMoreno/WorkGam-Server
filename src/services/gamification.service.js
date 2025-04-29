@@ -21,6 +21,7 @@ export const getRankingService = async () => {
       p.profile_pic,
       r.name AS role,
       g.xp_total
+      g.completed_tasks
     FROM person p
     JOIN employee e ON p.id = e.id
     JOIN role r ON e.role_id = r.id
@@ -31,16 +32,11 @@ export const getRankingService = async () => {
 
   const rankingWithLevels = await Promise.all(
     rankingQuery.rows.map(async (row) => {
-      const tasksCompleted = await pool.query(
-        "SELECT COUNT(*) AS total FROM started_task WHERE employee_id = $1 AND status = 'completed'",
-        [row.person_id],
-      );
       const pendingTasks = await pool.query(
         "SELECT COUNT(*) AS total FROM started_task WHERE employee_id = $1 AND status = 'pending'",
         [row.person_id],
       );
-      const xp = row.xp_total;
-      const level = getUserLevelService(xp);
+
 
       return {
         id: row.person_id,
@@ -48,10 +44,10 @@ export const getRankingService = async () => {
         email: row.email,
         profile_pic: row.profile_pic,
         role: row.role,
-        xp_total: xp,
-        tasks_completed: tasksCompleted.rows[0].total,
+        xp_total: row.xp_total,
+        tasks_completed: row.completed_tasks,
         pending_tasks: pendingTasks.rows[0].total,
-        level,
+        level: getUserLevelService(xp)
       };
     }),
   );
@@ -66,7 +62,7 @@ export const getRankingService = async () => {
  */
 export const getEmployeeStatisticsService = async (employeeId) => {
   const statisticsQuery = await pool.query(
-    'SELECT xp_total FROM gamification WHERE employee_id = $1',
+    'SELECT * FROM gamification WHERE employee_id = $1',
     [employeeId],
   );
 
@@ -74,10 +70,8 @@ export const getEmployeeStatisticsService = async (employeeId) => {
     throw new Error('No se encontraron estadísticas para el empleado');
   }
 
-  const tasksCompleted = await pool.query(
-    "SELECT COUNT(*) AS total FROM started_task WHERE employee_id = $1 AND status = 'completed'",
-    [employeeId],
-  );
+  const completedTasks = statisticsQuery.rows[0].completed_tasks;
+
   const pendingTasks = await pool.query(
     "SELECT COUNT(*) AS total FROM started_task WHERE employee_id = $1 AND status = 'pending'",
     [employeeId],
@@ -89,7 +83,7 @@ export const getEmployeeStatisticsService = async (employeeId) => {
 
   return {
     user,
-    completedTasks: tasksCompleted.rows[0].total,
+    completedTasks,
     pendingTasks: pendingTasks.rows[0].total,
     progressData,
   };
@@ -220,6 +214,17 @@ export const updateEmployeeXPService = async (
       startedDate,
       endDate,
     );
+
+  const completedTasks = await pool.query('SELECT completed_tasks FROM gamification WHERE employee_id = $1', [
+    employeeId,
+  ]);
+
+  const completedTasksCount = completedTasks.rows[0].completed_tasks + 1;
+  await pool.query(
+    'UPDATE gamification SET completed_tasks = $1 WHERE employee_id = $2',
+    [completedTasksCount, employeeId],
+  );
+  // Update the XP of the employee in the database
   await pool.query(
     'UPDATE gamification SET xp_total = $1 WHERE employee_id = $2',
     [newXP, employeeId],

@@ -1,5 +1,5 @@
-import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '../constants/constants.js';
+import jwt from "jsonwebtoken";
+import { JWT_SECRET } from "../constants/constants.js";
 
 /**
  * Middleware that verifies if the user is authenticated.
@@ -13,23 +13,24 @@ import { JWT_SECRET } from '../constants/constants.js';
  * @returns {void} Calls the next middleware or controller if the token is valid.
  */
 export const authRequired = (req, res, next) => {
-  const { token } = req.cookies; // We get the token from the cookies of the request, its name is 'token'
-
-  // If there is no token, send an error message
-  if (!token) {
-    console.log('No token provided');
-    return res.status(401).json({ message: 'Se requiere autenticación para acceder a este recurso' });
+  const authHeader = req.headers["authorization"];
+  if (!authHeader) {
+    return res.status(401).json({ message: "Falta el header Authorization" });
   }
 
-  // If there is a token, verify it with the secret key
-  jwt.verify(token, JWT_SECRET, (error, decoded) => {
-    // If the token is not valid, send an error message
-    if (error) {return res.status(403).json({ message: 'Invalid token' });}
+  const [scheme, token] = authHeader.split(" ");
+  if (scheme !== "Bearer" || !token) {
+    return res
+      .status(401)
+      .json({ message: "Formato de Authorization inválido" });
+  }
 
-    // If the token is valid, save the decoded user in the request object
-    req.user = decoded;
-
-    next(); // Proceed to the next middleware or controller
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: "Token inválido o expirado" });
+    }
+    req.user = decoded; // { id, role, iat, exp }
+    next();
   });
 };
 
@@ -41,16 +42,11 @@ export const authRequired = (req, res, next) => {
  * @returns {Function} A middleware function that checks if the user's role is valid.
  */
 export const verifyRole = (roles) => (req, res, next) => {
-  // If the user's role is not one of the allowed roles, send an error message
-  if (!roles.includes(req.user.role)) {
-    console.log('User role:', req.user.role);
-    console.log('Required roles:', roles);
-    return res
-      .status(403)
-      .json({
-        message: 'Acceso denegado. No tienes el rol necesario para acceder a este recurso',
-      });
+  if (!req.user || !roles.includes(req.user.role)) {
+    return res.status(403).json({
+      message:
+        "Acceso denegado. No tienes el rol necesario para acceder a este recurso",
+    });
   }
-
-  next(); // Proceed to the next middleware or controller if the role matches
+  next();
 };

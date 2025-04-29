@@ -119,6 +119,7 @@ CREATE TABLE IF NOT EXISTS gamification (
     id SERIAL PRIMARY KEY,
     employee_id INT NOT NULL UNIQUE,
     xp_total INT NOT NULL CHECK (xp_total >= 0) DEFAULT 0,
+    completed_tasks INT NOT NULL CHECK (completed_tasks >= 0) DEFAULT 0,
     FOREIGN KEY (employee_id) REFERENCES employee(id) ON DELETE CASCADE
 );
 

@@ -183,7 +183,7 @@ export const acceptTaskService = async (
     const clientId = startedProcedure.rows[0].client_id;
     await createAndSendNotificationService(
       clientId,
-      `La tarea "${taskName}" del procedimiento "${procedure.rows[0].name}" ha sido completada`,
+      `La tarea "${taskName}" del trámite "${procedure.rows[0].name}" ha sido completada`,
     );
 
     let newStartedProcedureStatus = 'in_progress';
@@ -206,7 +206,7 @@ export const acceptTaskService = async (
       // Notify the client about the task completion or procedure completion
       await createAndSendNotificationService(
         startedProcedure.rows[0].client_id,
-        `El procedimiento "${procedure.rows[0].name}" ha sido completado`,
+        `El trámite "${procedure.rows[0].name}" ha sido completado`,
       );
     }
 
@@ -279,10 +279,15 @@ export const rejectTaskService = async (
       startedTask.task_id,
     ]);
 
+    const procedureName = await pool.query(
+      'SELECT name FROM procedure WHERE id = $1',
+      [startedTask.started_procedure_id],
+    );
+
     // Notify the client about the task rejection
     await createAndSendNotificationService(
       clientId.rows[0].client_id,
-      `La tarea "${taskName}" del procedimiento "${startedTask.started_procedure_id}" ha sido rechazada`,
+      `La tarea "${taskName.rows[0].name}" del trámite "${procedureName.rows[0].name}" ha sido rechazada por el siguiente motivo: ${reason}`,
     );
 
     const taskInfo = await getTaskService(startedTask.task_id);

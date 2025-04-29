@@ -260,7 +260,8 @@ export const getLevelProgressionService = async (employeeId) => {
     nextLevel = {
       currentLevel: 'Max Level',
       xp: '∞',
-      image: 'https://bucket-tfg-pablo.s3.eu-north-1.amazonaws.com/gamificacion/infinito.png',
+      image:
+        'https://bucket-tfg-pablo.s3.eu-north-1.amazonaws.com/gamificacion/infinito.png',
     };
   }
   const progressData = {

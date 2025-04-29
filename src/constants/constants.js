@@ -7,7 +7,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 export const NODE_ENV = process.env.NODE_ENV;
-
 export const PORT = process.env.PORT;
 export const BACKEND_URL = process.env.BACKEND_URL;
 export const FRONTEND_URL = process.env.FRONTEND_URL;

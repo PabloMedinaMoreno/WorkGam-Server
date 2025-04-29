@@ -592,3 +592,92 @@ export const updateStartedTaskStatusService = async (
 
   return result.rows[0];
 };
+
+export const getClientStartedTasksService = async (
+  startedProcedureId,
+  clientId,
+) => {
+  try {
+    // Check if the client has started the procedure
+    const procedureCheck = await pool.query(
+      'SELECT * FROM started_procedure WHERE id = $1 AND client_id = $2',
+      [startedProcedureId, clientId],
+    );
+    if (procedureCheck.rowCount === 0) {
+      throw new Error('El procedimiento no ha sido iniciado por este cliente');
+    }
+
+    // Check if the started procedure exists
+    const startedProcedureCheck = await pool.query(
+      'SELECT * FROM started_procedure WHERE id = $1',
+      [startedProcedureId],
+    );
+
+    if (startedProcedureCheck.rowCount === 0) {
+      throw new Error('El procedimiento iniciado no existe');
+    }
+
+    // Get the started tasks of the started procedure which are not rejected
+    const tasksQuery = await pool.query("SELECT * FROM started_task WHERE started_procedure_id = $1 AND status != 'rejected'", [
+      startedProcedureId,
+    ]);
+
+    const tasks = tasksQuery.rows;
+    return tasks;
+  }
+  catch (error) {
+    console.error('Error al obtener las tareas iniciadas:', error);
+    throw new Error(error.message || 'Error al obtener las tareas iniciadas');
+  }
+};
+
+export const getClientPendingTasksService = async (
+  startedProcedureId,
+  clientId,
+) => {
+  try {
+    // Check if the client has started the procedure
+    const procedureCheck = await pool.query(
+      'SELECT * FROM started_procedure WHERE id = $1 AND client_id = $2',
+      [startedProcedureId, clientId],
+    );
+    if (procedureCheck.rowCount === 0) {
+      throw new Error('El procedimiento no ha sido iniciado por este cliente');
+    }
+
+    // Check if the started procedure exists
+    const startedProcedureCheck = await pool.query(
+      'SELECT * FROM started_procedure WHERE id = $1',
+      [startedProcedureId],
+    );
+
+    if (startedProcedureCheck.rowCount === 0) {
+      throw new Error('El procedimiento iniciado no existe');
+    }
+
+    const procedureId = await pool.query(
+      'SELECT procedure_id FROM started_procedure WHERE id = $1',
+      [startedProcedureId],
+    );
+
+    // Get the tasks of the procedure whose id is not in ( select ids from started tasks where status is pending or completed)
+    const tasksQuery = await pool.query(
+      `
+      SELECT * FROM task
+      WHERE procedure_id = $1
+        AND id NOT IN (
+          SELECT task_id FROM started_task
+          WHERE started_procedure_id = $2
+            AND status IN ('pending', 'completed')
+        )
+    `,
+      [procedureId.rows[0].procedure_id, startedProcedureId],
+    );
+
+    return tasksQuery.rows;
+
+  } catch (error) {
+    console.error('Error al obtener las tareas pendientes:', error);
+    throw new Error(error.message || 'Error al obtener las tareas pendientes');
+  }
+};

@@ -208,7 +208,5 @@ export const deleteAllNotificationsService = async (personId) => {
     );
     throw new Error(error.message || 'Error al eliminar todas las notificaciones');
   }
-
-  // If the notifications were deleted successfully, return a success message
   return { message: 'Todas las notificaciones eliminadas correctamente' };
 };

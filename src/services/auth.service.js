@@ -312,7 +312,7 @@ export async function forgotPasswordService({ email }) {
   );
 
   if (userQuery.rowCount === 0) {
-    throw new Error('El email no existe');
+    throw new Error('El email no está registrado');
   }
 
   const user = userQuery.rows[0];

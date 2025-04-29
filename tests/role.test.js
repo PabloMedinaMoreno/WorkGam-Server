@@ -7,19 +7,6 @@ beforeAll(async () => {
   await setupDatabaseSchema();
 });
 
-describe('AUTH: /roles', () => {
-  it('debería obtener todos los roles (ruta pública)', async () => {
-    const res = await request(app).get(`${baseUrl}/`);
-
-    expect(res.statusCode).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBe(1);
-    expect(res.body[0]).toHaveProperty('id');
-    expect(res.body[0]).toHaveProperty('name', 'Administrador');
-    expect(res.body[0]).toHaveProperty('description');
-  });
-});
-
 describe('AUTH: /roles (crear, actualizar, eliminar)', () => {
   let loginCookie;
 

@@ -10,7 +10,6 @@ import {
   resetPasswordService,
 } from '../services/auth.service.js';
 import { createAndSendNotificationService } from '../services/notification.service.js';
-import { NODE_ENV } from '../constants/constants.js';
 
 /**
  * Registers a new user.
@@ -32,10 +31,10 @@ export const signup = async (req, res) => {
     await createAndSendNotificationService(user.id, '¡Bienvenido a la plataforma!');
 
     res.cookie('token', token, {
-      httpOnly: true, // Esto asegura que la cookie no sea accesible desde JavaScript del lado del cliente
-      secure: NODE_ENV === 'production', // Esto asegura que la cookie solo se envíe a través de HTTPS
+      httpOnly: true,
+      secure: true,
       sameSite: 'None',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.status(201).json(user);
@@ -66,9 +65,9 @@ export const login = async (req, res) => {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure: NODE_ENV === 'production',
+      secure: true,
       sameSite: 'None',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json(user);
@@ -214,7 +213,7 @@ export const forgotPassword = async (req, res) => {
     const result = await forgotPasswordService({ email });
     return res.status(200).json(result);
   } catch (error) {
-    if (error.message === 'El email no existe') {
+    if (error.message === 'El email no está registrado') {
       return res.status(400).json({ message: error.message });
     }
     return res.status(500).json({ message: error.message });

@@ -62,7 +62,7 @@ export const createWorkerService = async ({
       id: personId,
       username,
       email,
-      role: role_id, // Assuming role_id is passed
+      role: role_id, 
       profile_pic: profilePic,
       phone,
     };

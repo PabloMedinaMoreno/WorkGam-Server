@@ -214,7 +214,7 @@ describe('AUTH: /forgot-password', () => {
     });
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.message).toBe('El email no existe');
+    expect(res.body.message).toBe('El email no está registrado');
   });
 });
 

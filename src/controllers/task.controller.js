@@ -7,6 +7,8 @@ import {
   getTasksService,
   rejectTaskService,
   uploadTaskService,
+  getClientStartedTasksService,
+  getClientPendingTasksService,
 } from '../services/task.service.js';
 
 /**
@@ -226,6 +228,40 @@ export const updateTask = async (req, res) => {
       return res.status(404).json({ message: error.message });
     }
     res.status(500).json({ message: 'Error al actualizar la tarea' });
+  }
+};
+
+// Controlador para obtener las tareas y su estado
+export const getClientStartedTasks = async (req, res) => {
+  const { startedProcedureId } = req.params;
+  const clientId = req.user.id;
+
+
+  try {
+    // Obtener las tareas iniciadas para el procedimiento iniciado y cliente
+    const result = await getClientStartedTasksService(startedProcedureId, clientId);
+
+    // Responder con dos arrays: tareas completadas o con documentos, y tareas sin documentos o rechazadas
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Error al obtener el estado de las tareas del trámite:', error);
+    res.status(500).json({ message: error.message || 'Error al obtener el estado de las tareas' });
+  }
+};
+
+export const getClientPendingTasks = async (req, res) => {
+  const { startedProcedureId } = req.params;
+  const clientId = req.user.id;
+
+  try {
+    // Obtener las tareas iniciadas para el procedimiento iniciado y cliente
+    const result = await getClientPendingTasksService(startedProcedureId, clientId);
+
+    // Responder con dos arrays: tareas completadas o con documentos, y tareas sin documentos o rechazadas
+    res.status(200).json(result);
+  } catch (error) {
+    console.error('Error al obtener el estado de las tareas del trámite:', error);
+    res.status(500).json({ message: error.message || 'Error al obtener el estado de las tareas' });
   }
 };
 

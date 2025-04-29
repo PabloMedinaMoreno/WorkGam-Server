@@ -2,20 +2,14 @@ import pg from 'pg';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {
-  DATABASE_URL,
-} from '../constants/constants.js';
+import { DATABASE_URL } from '../constants/constants.js';
 
 export const pool = new pg.Pool({
   connectionString: DATABASE_URL,
-  // ssl: {
-  //   rejectUnauthorized: false,
-  // },
 });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 
 /**
  * Connects to the Postgres database using the pool configuration.
@@ -90,4 +84,3 @@ export async function initializeDatabase() {
     throw error;
   }
 }
-

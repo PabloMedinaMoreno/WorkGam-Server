@@ -15,6 +15,13 @@ DO $$ BEGIN
   DROP TYPE IF EXISTS started_task_status CASCADE;
 END $$;
 
+-- Crear ENUM para niveles de dificultad de las tareas
+DO $$ BEGIN
+    CREATE TYPE task_difficulty_level AS ENUM ('easy', 'medium', 'hard');
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END $$;
+
 -- Crear la tabla base Person (Herencia para Client y Employee)
 CREATE TABLE IF NOT EXISTS person (
     id SERIAL PRIMARY KEY,
@@ -50,13 +57,6 @@ CREATE TABLE IF NOT EXISTS procedure (
     name VARCHAR(255) UNIQUE NOT NULL,
     description TEXT NOT NULL
 );
-
--- Crear ENUM para niveles de dificultad de las tareas
-DO $$ BEGIN
-    CREATE TYPE task_difficulty_level AS ENUM ('easy', 'medium', 'hard');
-EXCEPTION
-    WHEN duplicate_object THEN NULL;
-END $$;
 
 -- Crear tabla Task
 CREATE TABLE IF NOT EXISTS task (

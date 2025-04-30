@@ -90,29 +90,6 @@ export const login = async (req, res) => {
 };
 
 /**
- * Logs out a user.
- *
- * Responds with:
- *  - 200 OK: If logout is successful.
- *  - 500 Internal Server Error: If an error occurs.
- *
- * @param {Object} req - The HTTP request object.
- * @param {Object} res - The HTTP response object.
- */
-export const logout = async (req, res) => {
-  try {
-    res.cookie("token", "", {
-      httpOnly: true,
-      secure: true,
-      expires: new Date(0),
-    });
-    res.status(200).json({ message: "Sesión cerrada exitosamente" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-/**
  * Retrieves the authenticated user's profile.
  *
  * Responds with:

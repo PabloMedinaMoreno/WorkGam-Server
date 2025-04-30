@@ -1,12 +1,12 @@
-import { pool } from '../databases/db.js';
-import { calculateXPGamification } from '../utils/xp.utils.js'; // Utiliza una función para calcular XP y obtener el nivel
+import { pool } from "../databases/db.js";
+import { calculateXPGamification } from "../utils/xp.utils.js"; // Utiliza una función para calcular XP y obtener el nivel
 import {
   createAndSendNotificationService,
   sendLevelUpNotificationService,
   sendWebSocketNotificationService,
-} from './notification.service.js';
-import { gamificationLevels } from '../constants/gamificationLevels.js';
-import { profileService } from './auth.service.js';
+} from "./notification.service.js";
+import { gamificationLevels } from "../constants/gamificationLevels.js";
+import { profileService } from "./auth.service.js";
 
 /**
  * Gets the ranking of employees.
@@ -20,7 +20,7 @@ export const getRankingService = async () => {
       p.email,
       p.profile_pic,
       r.name AS role,
-      g.xp_total
+      g.xp_total,
       g.completed_tasks
     FROM person p
     JOIN employee e ON p.id = e.id
@@ -34,9 +34,8 @@ export const getRankingService = async () => {
     rankingQuery.rows.map(async (row) => {
       const pendingTasks = await pool.query(
         "SELECT COUNT(*) AS total FROM started_task WHERE employee_id = $1 AND status = 'pending'",
-        [row.person_id],
+        [row.person_id]
       );
-
 
       return {
         id: row.person_id,
@@ -47,9 +46,9 @@ export const getRankingService = async () => {
         xp_total: row.xp_total,
         tasks_completed: row.completed_tasks,
         pending_tasks: pendingTasks.rows[0].total,
-        level: getUserLevelService(xp)
+        level: getUserLevelService(xp),
       };
-    }),
+    })
   );
 
   return rankingWithLevels;
@@ -62,19 +61,19 @@ export const getRankingService = async () => {
  */
 export const getEmployeeStatisticsService = async (employeeId) => {
   const statisticsQuery = await pool.query(
-    'SELECT * FROM gamification WHERE employee_id = $1',
-    [employeeId],
+    "SELECT * FROM gamification WHERE employee_id = $1",
+    [employeeId]
   );
 
   if (statisticsQuery.rowCount === 0) {
-    throw new Error('No se encontraron estadísticas para el empleado');
+    throw new Error("No se encontraron estadísticas para el empleado");
   }
 
   const completedTasks = statisticsQuery.rows[0].completed_tasks;
 
   const pendingTasks = await pool.query(
     "SELECT COUNT(*) AS total FROM started_task WHERE employee_id = $1 AND status = 'pending'",
-    [employeeId],
+    [employeeId]
   );
 
   const progressData = await getLevelProgressionService(employeeId);
@@ -111,7 +110,7 @@ export const handleXPAndNotificationService = async (
   startedTaskInfo,
   socketId,
   io,
-  isTaskAccepted,
+  isTaskAccepted
 ) => {
   const {
     name: taskName,
@@ -123,13 +122,13 @@ export const handleXPAndNotificationService = async (
 
   // Get current XP of the employee
   const currentXPResult = await pool.query(
-    'SELECT xp_total FROM gamification WHERE employee_id = $1',
-    [employeeId],
+    "SELECT xp_total FROM gamification WHERE employee_id = $1",
+    [employeeId]
   );
   const currentXP = currentXPResult.rows[0].xp_total;
 
   if (currentXP === undefined) {
-    throw new Error('No se encontró XP para el empleado');
+    throw new Error("No se encontró XP para el empleado");
   }
 
   // Get current level of the employee
@@ -143,7 +142,7 @@ export const handleXPAndNotificationService = async (
     estimatedDays,
     difficulty,
     startedDate,
-    endDate,
+    endDate
   );
 
   // Check if the level has changed and notify the employee
@@ -155,10 +154,10 @@ export const handleXPAndNotificationService = async (
   await createAndSendNotificationService(
     employeeId,
     `Has ${
-      isTaskAccepted ? 'aceptado' : 'rechazado'
+      isTaskAccepted ? "aceptado" : "rechazado"
     } la tarea "${taskName}" y ganado ${XPChange} XP. Tu XP total es ${newXP}.`,
     io,
-    socketId,
+    socketId
   );
 
   // If the level has changed, send a level-up notification
@@ -168,18 +167,18 @@ export const handleXPAndNotificationService = async (
       currentLevel,
       nextLevel,
       io,
-      socketId,
+      socketId
     );
   } // If the level has not changed, send a progress notification
   else {
     // Considering that each level has 100 XP between them
     const progressData = await getLevelProgressionService(employeeId);
-    console.log('Progress Data', progressData);
+    console.log("Progress Data", progressData);
     await sendWebSocketNotificationService(
-      'progress_notification',
+      "progress_notification",
       progressData,
       io,
-      socketId,
+      socketId
     );
   }
 };
@@ -203,7 +202,7 @@ export const updateEmployeeXPService = async (
   estimatedDays,
   taskDifficulty,
   startedDate,
-  endDate,
+  endDate
 ) => {
   const newXP =
     currentXP +
@@ -212,22 +211,23 @@ export const updateEmployeeXPService = async (
       estimatedDays,
       taskDifficulty,
       startedDate,
-      endDate,
+      endDate
     );
 
-  const completedTasks = await pool.query('SELECT completed_tasks FROM gamification WHERE employee_id = $1', [
-    employeeId,
-  ]);
+  const completedTasks = await pool.query(
+    "SELECT completed_tasks FROM gamification WHERE employee_id = $1",
+    [employeeId]
+  );
 
   const completedTasksCount = completedTasks.rows[0].completed_tasks + 1;
   await pool.query(
-    'UPDATE gamification SET completed_tasks = $1 WHERE employee_id = $2',
-    [completedTasksCount, employeeId],
+    "UPDATE gamification SET completed_tasks = $1 WHERE employee_id = $2",
+    [completedTasksCount, employeeId]
   );
   // Update the XP of the employee in the database
   await pool.query(
-    'UPDATE gamification SET xp_total = $1 WHERE employee_id = $2',
-    [newXP, employeeId],
+    "UPDATE gamification SET xp_total = $1 WHERE employee_id = $2",
+    [newXP, employeeId]
   );
 
   return newXP;
@@ -251,22 +251,22 @@ export const getUserLevelService = (userXP) => {
  */
 export const getLevelProgressionService = async (employeeId) => {
   const currentXPResult = await pool.query(
-    'SELECT xp_total FROM gamification WHERE employee_id = $1',
-    [employeeId],
+    "SELECT xp_total FROM gamification WHERE employee_id = $1",
+    [employeeId]
   );
 
   const currentXP = currentXPResult.rows[0].xp_total;
   const currentLevel = getUserLevelService(currentXP);
   let nextLevel = gamificationLevels.find(
-    (level) => level.id === currentLevel.id + 1,
+    (level) => level.id === currentLevel.id + 1
   );
 
   if (!nextLevel) {
     nextLevel = {
-      currentLevel: 'Max Level',
-      xp: '∞',
+      currentLevel: "Max Level",
+      xp: "∞",
       image:
-        'https://bucket-tfg-pablo.s3.eu-north-1.amazonaws.com/gamificacion/infinito.png',
+        "https://bucket-tfg-pablo.s3.eu-north-1.amazonaws.com/gamificacion/infinito.png",
     };
   }
   const progressData = {

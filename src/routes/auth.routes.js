@@ -2,7 +2,6 @@ import { Router } from 'express';
 import {
   login,
   signup,
-  logout,
   profile,
   updateProfile,
   updateProfilePic,
@@ -27,7 +26,6 @@ const router = Router();
 // Public routes
 router.post('/login', validateSchema(loginSchema), login);
 router.post('/signup', validateSchema(signupSchema), signup);
-router.post('/logout', logout);
 router.post('/forgot-password', validateSchema(forgotPasswordSchema), forgotPassword);
 router.post('/reset-password/:token', validateSchema(resetPasswordSchema), resetPassword);
 

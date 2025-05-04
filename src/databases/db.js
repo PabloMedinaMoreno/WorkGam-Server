@@ -2,10 +2,21 @@ import pg from 'pg';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { DATABASE_URL } from '../constants/constants.js';
+import { DATABASE_URL , NODE_ENV} from '../constants/constants.js';
+
+const isTest = NODE_ENV === 'test';
+const isProd = NODE_ENV === 'production';
 
 export const pool = new pg.Pool({
   connectionString: DATABASE_URL,
+  // En test: SSL sí pero sin validar certificado (Railway, etc.)
+  // En producción: SSL validado
+  // En desarrollo: no SSL
+  ssl: isTest
+    ? { rejectUnauthorized: false }
+    : isProd
+      ? { rejectUnauthorized: true }
+      : undefined,
 });
 
 const __filename = fileURLToPath(import.meta.url);

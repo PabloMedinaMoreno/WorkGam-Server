@@ -62,7 +62,7 @@ export const createWorkerService = async ({
       id: personId,
       username,
       email,
-      role: role_id, 
+      role: role_id,
       profile_pic: profilePic,
       phone,
     };
@@ -80,7 +80,7 @@ export const getWorkersService = async () => {
   try {
     const result = await pool.query(
       `SELECT p.id, p.username, p.email, p.profile_pic, p.phone, r.name AS role
-       FROM person p JOIN employee e ON p.id = e.id JOIN role r ON e.role_id = r.id`,
+       FROM person p JOIN employee e ON p.id = e.id JOIN role r ON e.role_id = r.id ORDER BY p.username ASC`,
     );
     return result.rows;
   } catch (error) {

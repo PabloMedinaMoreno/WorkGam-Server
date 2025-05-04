@@ -42,7 +42,7 @@ export const createRoleService = async ({ name, description }) => {
  */
 export const getRolesService = async () => {
   try {
-    const result = await pool.query('SELECT * FROM role');
+    const result = await pool.query('SELECT * FROM role ORDER BY name ASC');
     return result.rows;
   } catch (error) {
     throw new Error(error.message || 'Error al obtener los roles');

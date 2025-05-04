@@ -1,5 +1,5 @@
-import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../constants/constants.js";
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../constants/constants.js';
 
 /**
  * Middleware that verifies if the user is authenticated.
@@ -13,21 +13,21 @@ import { JWT_SECRET } from "../constants/constants.js";
  * @returns {void} Calls the next middleware or controller if the token is valid.
  */
 export const authRequired = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
+  const authHeader = req.headers['authorization'];
   if (!authHeader) {
-    return res.status(401).json({ message: "Falta el header Authorization" });
+    return res.status(401).json({ message: 'Se requiere autenticación para acceder a este recurso' });
   }
 
-  const [scheme, token] = authHeader.split(" ");
-  if (scheme !== "Bearer" || !token) {
+  const [scheme, token] = authHeader.split(' ');
+  if (scheme !== 'Bearer' || !token) {
     return res
       .status(401)
-      .json({ message: "Formato de Authorization inválido" });
+      .json({ message: 'Formato de Authorization inválido' });
   }
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
-      return res.status(403).json({ message: "Token inválido o expirado" });
+      return res.status(403).json({ message: 'Token inválido o expirado' });
     }
     req.user = decoded; // { id, role, iat, exp }
     next();
@@ -45,7 +45,7 @@ export const verifyRole = (roles) => (req, res, next) => {
   if (!req.user || !roles.includes(req.user.role)) {
     return res.status(403).json({
       message:
-        "Acceso denegado. No tienes el rol necesario para acceder a este recurso",
+        'Acceso denegado. No tienes el rol necesario para acceder a este recurso',
     });
   }
   next();

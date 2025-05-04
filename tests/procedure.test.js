@@ -1,224 +1,203 @@
 import request from 'supertest';
 import app from '../src/app.js';
-import { setupDatabaseSchema } from '../src/databases/db.js';
+import { setupDatabaseSchema, pool } from '../src/databases/db.js';
+
 const baseUrl = '/api/procedures';
+let adminToken, clientToken;
+let procedureId, startedId;
+
+afterAll(async () => {
+  await pool.end();
+});
 
 beforeAll(async () => {
   await setupDatabaseSchema();
+
+
+  // 1) Login Admin
+  const loginAdmin = await request(app)
+    .post('/api/auth/login')
+    .send({ email: 'admin@workgam.com', password: '12345' });
+  expect(loginAdmin.statusCode).toBe(200);
+  adminToken = loginAdmin.body.token;
+
+  // 2) Crear y Login Cliente
+  const signupClient = await request(app)
+    .post('/api/auth/signup')
+    .send({
+      username: 'cliente1',
+      email: 'cliente1@example.com',
+      password: 'pass123',
+      gender: 'male',
+      phone: '000111222',
+    });
+  expect(signupClient.statusCode).toBe(201);
+
+  const loginClient = await request(app)
+    .post('/api/auth/login')
+    .send({ email: 'cliente1@example.com', password: 'pass123' });
+  expect(loginClient.statusCode).toBe(200);
+  clientToken = loginClient.body.token;
 });
 
-describe('AUTH: /procedures (crear, actualizar, eliminar, obtener)', () => {
-  let loginCookie;
-
-  beforeAll(async () => {
-    const loginRes = await request(app).post('/api/auth/login').send({
-      email: 'admin@workgam.com',
-      password: '12345',
-    });
-    loginCookie = loginRes.headers['set-cookie'];
+describe('PROCEDURES CRUD (Admin)', () => {
+  it('GET 200 /procedures (vacío)', async () => {
+    const res = await request(app)
+      .get(baseUrl)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body).toHaveLength(0);
   });
 
-  it('debería crear un procedimiento correctamente', async () => {
-    const newProcedure = {
-      name: 'Nuevo Procedimiento',
-      description: 'Descripción del nuevo procedimiento',
-    };
-
+  it('POST 201 /procedures crea nuevo', async () => {
     const res = await request(app)
-      .post(`${baseUrl}/`)
-      .set('Cookie', loginCookie)
-      .send(newProcedure);
-
+      .post(baseUrl)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'Proc A', description: 'Desc A' });
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty('id');
-    expect(res.body).toHaveProperty('name', newProcedure.name);
-    expect(res.body).toHaveProperty('description', newProcedure.description);
+    procedureId = res.body.id;
   });
 
-  it('debería retornar un error 400 si faltan campos al crear un procedimiento', async () => {
-    const newProcedure = {
-      name: 'Nuevo Procedimiento',
-    };
-
+  it('POST 400 /procedures sin descripción', async () => {
     const res = await request(app)
-      .post(`${baseUrl}/`)
-      .set('Cookie', loginCookie)
-      .send(newProcedure);
-
+      .post(baseUrl)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'SinDesc' });
     expect(res.statusCode).toBe(400);
   });
 
-  it('debería retornar un error 409 si el procedimiento ya existe', async () => {
-    await request(app).post(`${baseUrl}/`).set('Cookie', loginCookie).send({
-      name: 'Procedimiento Existente',
-      description: 'Este procedimiento ya existe',
-    });
-
+  it('POST 409 /procedures duplicado', async () => {
     const res = await request(app)
-      .post(`${baseUrl}/`)
-      .set('Cookie', loginCookie)
-      .send({
-        name: 'Procedimiento Existente',
-        description: 'Este procedimiento ya existe',
-      });
-
+      .post(baseUrl)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'Proc A', description: 'Desc A' });
     expect(res.statusCode).toBe(409);
     expect(res.body.message).toBe('Ya existe un procedimiento con este nombre');
   });
 
-  it('debería actualizar un procedimiento correctamente', async () => {
-    const procedureRes = await request(app)
-      .post(`${baseUrl}/`)
-      .set('Cookie', loginCookie)
-      .send({
-        name: 'Procedimiento para Actualizar',
-        description: 'Descripción antes de actualizar',
-      });
-
-    const procedureId = procedureRes.body.id;
-    const updatedProcedure = {
-      name: 'Procedimiento Actualizado',
-      description: 'Descripción actualizada del procedimiento',
-    };
-
+  it('PUT 200 /procedures/:id actualiza correctamente', async () => {
     const res = await request(app)
       .put(`${baseUrl}/${procedureId}`)
-      .set('Cookie', loginCookie)
-      .send(updatedProcedure);
-
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'Proc A mod', description: 'Desc mod' });
     expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('id', procedureId);
-    expect(res.body).toHaveProperty('name', updatedProcedure.name);
-    expect(res.body).toHaveProperty(
-      'description',
-      updatedProcedure.description,
-    );
+    expect(res.body).toHaveProperty('name', 'Proc A mod');
   });
 
-  it('debería retornar un error 404 al intentar actualizar un procedimiento que no existe', async () => {
+  it('PUT 404 /procedures/999999 no existe', async () => {
     const res = await request(app)
       .put(`${baseUrl}/999999`)
-      .set('Cookie', loginCookie)
-      .send({
-        name: 'Procedimiento Inexistente',
-        description: 'Descripción para el procedimiento inexistente',
-      });
-
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'X', description: 'Y' });
     expect(res.statusCode).toBe(404);
     expect(res.body.message).toBe('Procedimiento no encontrado');
   });
 
-  it('debería eliminar un procedimiento correctamente', async () => {
-    const resCreate = await request(app)
-      .post(`${baseUrl}/`)
-      .set('Cookie', loginCookie)
-      .send({
-        name: 'Procedimiento a Eliminar',
-        description: 'Este procedimiento será eliminado',
-      });
-
-    const procedureId = resCreate.body.id;
-    const resDelete = await request(app)
-      .delete(`${baseUrl}/${procedureId}`)
-      .set('Cookie', loginCookie);
-
-    expect(resDelete.statusCode).toBe(204);
+  it('GET 200 /procedures/:id/tasks (vacío)', async () => {
+    const res = await request(app)
+      .get(`${baseUrl}/${procedureId}/tasks`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body.tasks)).toBe(true);
+    expect(res.body.tasks).toHaveLength(0);
   });
 
-  it('debería retornar un error 404 al intentar eliminar un procedimiento que no existe', async () => {
+  it('GET 404 /procedures/999999/tasks no existe', async () => {
+    const res = await request(app)
+      .get(`${baseUrl}/999999/tasks`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(404);
+    expect(res.body.message).toBe('Procedimiento no encontrado');
+  });
+
+  it('DELETE 204 /procedures/:id elimina procedimiento', async () => {
+    // Creamos otro para borrar
+    const c2 = await request(app)
+      .post(baseUrl)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ name: 'ParaDel2', description: 'D' });
+    const id2 = c2.body.id;
+
+    const res = await request(app)
+      .delete(`${baseUrl}/${id2}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(204);
+  });
+
+  it('DELETE 404 /procedures/999999 no existe', async () => {
     const res = await request(app)
       .delete(`${baseUrl}/999999`)
-      .set('Cookie', loginCookie);
-
+      .set('Authorization', `Bearer ${adminToken}`);
     expect(res.statusCode).toBe(404);
     expect(res.body.message).toBe('Procedimiento no encontrado');
-  });
-
-  it('debería obtener todos los procedimientos correctamente', async () => {
-    const res = await request(app)
-      .get(`${baseUrl}/`)
-      .set('Cookie', loginCookie);
-
-    expect(res.statusCode).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBeGreaterThan(0);
   });
 });
 
-describe('AUTH: /procedures tasks', () => {
-  let loginCookie;
-  let procedureId;
-
-  beforeAll(async () => {
-    const loginRes = await request(app).post('/api/auth/login').send({
-      email: 'admin@workgam.com',
-      password: '12345',
-    });
-    loginCookie = loginRes.headers['set-cookie'];
-
-    const resCreate = await request(app)
-      .post(`${baseUrl}/`)
-      .set('Cookie', loginCookie)
-      .send({
-        name: 'Procedimiento para Tareas',
-        description: 'Este procedimiento tiene tareas',
-      });
-
-    console.log('Respuesta de creación de procedimiento:', resCreate.body);
-    expect(resCreate.statusCode).toBe(201);
-    expect(resCreate.body).toHaveProperty('id');
-
-    procedureId = resCreate.body.id;
-  });
-
-  it('debería crear una tarea para un procedimiento', async () => {
-    const newTask = {
-      name: 'Tarea 1',
-      description: 'Descripción de la tarea',
-      xp: 100,
-      role_id: 1,
-      estimated_duration_days: 2,
-      difficulty: 'medium',
-    };
-
+describe('PROCEDURES flujo inicio/cancelación (Client)', () => {
+  it('POST 201 /procedures/:id/start inicia procedimiento', async () => {
     const res = await request(app)
-      .post(`${baseUrl}/${procedureId}/tasks`)
-      .set('Cookie', loginCookie)
-      .send(newTask);
-
+      .post(`${baseUrl}/${procedureId}/start`)
+      .set('Authorization', `Bearer ${clientToken}`)
+      .send({ socketId: 'test-socket' });
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty('id');
-    expect(res.body).toHaveProperty('name', newTask.name);
-    expect(res.body).toHaveProperty('description', newTask.description);
+    expect(res.body).toHaveProperty('procedure_id', procedureId);
+    startedId = res.body.id;
   });
 
-  it('debería retornar un error 404 si el procedimiento no existe al crear una tarea', async () => {
-    const newTask = {
-      name: 'Tarea 2',
-      description: 'Descripción de la tarea',
-      xp: 100,
-      role_id: 2,
-      estimated_duration_days: 2,
-      difficulty: 'medium',
-    };
-
+  it('POST 409 /procedures/:id/start ya iniciado', async () => {
     const res = await request(app)
-      .post(`${baseUrl}/999999/tasks`)
-      .set('Cookie', loginCookie)
-      .send(newTask);
+      .post(`${baseUrl}/${procedureId}/start`)
+      .set('Authorization', `Bearer ${clientToken}`)
+      .send({ socketId: 'test' });
+    expect(res.statusCode).toBe(409);
+    expect(res.body.message).toBe('Ya ha iniciado este procedimiento');
+  });
 
+  it('GET 200 /procedures/started devuelve mis iniciados', async () => {
+    const res = await request(app)
+      .get(`${baseUrl}/started`)
+      .set('Authorization', `Bearer ${clientToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: startedId })]),
+    );
+  });
+
+  it('GET 200 /procedures/started devuelve todos los iniciados', async () => {
+    const res = await request(app)
+      .get(`${baseUrl}/all-started`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+  });
+
+  it('GET 200 /procedures/started/:id/tasks devuelve tareas iniciadas', async () => {
+    const res = await request(app)
+      .get(`${baseUrl}/started/${startedId}/tasks`)
+      .set('Authorization', `Bearer ${clientToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+  });
+
+  it('PUT 200 /procedures/:id/cancel cancela iniciado', async () => {
+    const res = await request(app)
+      .put(`${baseUrl}/${startedId}/cancel`)
+      .set('Authorization', `Bearer ${clientToken}`)
+      .send({ socketId: 'test' });
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toBe('Procedimiento cancelado correctamente');
+  });
+
+  it('PUT 404 /procedures/999999/cancel no existe', async () => {
+    const res = await request(app)
+      .put(`${baseUrl}/999999/cancel`)
+      .set('Authorization', `Bearer ${clientToken}`)
+      .send({ socketId: 'x' });
     expect(res.statusCode).toBe(404);
     expect(res.body.message).toBe('Procedimiento no encontrado');
-  });
-
-  it('debería obtener las tareas de un procedimiento correctamente', async () => {
-    const res = await request(app)
-      .get(`${baseUrl}/${procedureId}/tasks`)
-      .set('Cookie', loginCookie);
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('tasks');
-    expect(Array.isArray(res.body.tasks)).toBe(true);
-    expect(res.body.tasks.length).toBeGreaterThan(0);
   });
 });

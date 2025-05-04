@@ -7,8 +7,8 @@ import {
   changePasswordService,
   forgotPasswordService,
   resetPasswordService,
-} from "../services/auth.service.js";
-import { createAndSendNotificationService } from "../services/notification.service.js";
+} from '../services/auth.service.js';
+import { createAndSendNotificationService } from '../services/notification.service.js';
 
 /**
  * Registers a new user.
@@ -35,15 +35,15 @@ export const signup = async (req, res) => {
     // Send welcome notification
     await createAndSendNotificationService(
       user.id,
-      "¡Bienvenido a la plataforma!"
+      '¡Bienvenido a la plataforma!',
     );
 
-    res.status(200).json({
+    res.status(201).json({
       user,
       token,
     });
   } catch (error) {
-    if (error.message === "El email ya está registrado") {
+    if (error.message === 'El email ya está registrado') {
       return res.status(409).json({ message: error.message });
     }
     res.status(500).json({ message: error.message });
@@ -67,10 +67,10 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
     const { user, token } = await loginService({ email, password });
 
-    res.cookie("token", token, {
+    res.cookie('token', token, {
       httpOnly: true,
       secure: true,
-      sameSite: "none",
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -79,10 +79,10 @@ export const login = async (req, res) => {
       token,
     });
   } catch (error) {
-    if (error.message === "El usuario no existe") {
+    if (error.message === 'El usuario no existe') {
       return res.status(404).json({ message: error.message });
     }
-    if (error.message === "Contraseña inválida") {
+    if (error.message === 'Contraseña inválida') {
       return res.status(401).json({ message: error.message });
     }
     res.status(500).json({ message: error.message });
@@ -128,7 +128,7 @@ export const updateProfile = async (req, res) => {
     });
     res.status(200).json(updatedProfile);
   } catch (error) {
-    if (error.message === "El email ya está registrado") {
+    if (error.message === 'El email ya está registrado') {
       return res.status(409).json({ message: error.message });
     }
     res.status(500).json({ message: error.message });
@@ -177,13 +177,13 @@ export const changePassword = async (req, res) => {
     });
     res.status(200).json(result);
   } catch (error) {
-    if (error.message === "Las contraseñas no coinciden") {
+    if (error.message === 'Las contraseñas no coinciden') {
       return res.status(400).json({ message: error.message });
     }
-    if (error.message === "Usuario no encontrado") {
+    if (error.message === 'Usuario no encontrado') {
       return res.status(404).json({ message: error.message });
     }
-    if (error.message === "Contraseña actual incorrecta") {
+    if (error.message === 'Contraseña actual incorrecta') {
       return res.status(401).json({ message: error.message });
     }
     res.status(500).json({ message: error.message });
@@ -209,7 +209,7 @@ export const forgotPassword = async (req, res) => {
     const result = await forgotPasswordService({ email });
     return res.status(200).json(result);
   } catch (error) {
-    if (error.message === "El email no está registrado") {
+    if (error.message === 'El email no está registrado') {
       return res.status(400).json({ message: error.message });
     }
     return res.status(500).json({ message: error.message });
@@ -234,7 +234,7 @@ export const resetPassword = async (req, res) => {
     const result = await resetPasswordService({ token, password });
     return res.status(200).json(result);
   } catch (error) {
-    if (error.message === "Token inválido o expirado") {
+    if (error.message === 'Token inválido o expirado') {
       return res.status(400).json({ message: error.message });
     }
     return res.status(500).json({ message: error.message });

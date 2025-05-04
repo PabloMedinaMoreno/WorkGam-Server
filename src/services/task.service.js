@@ -598,6 +598,16 @@ export const updateStartedTaskStatusService = async (
   return result.rows[0];
 };
 
+/**
+ * Retrieves tasks started by a client for a specific procedure.
+ *
+ * @param {*} startedProcedureId - The ID of the started procedure.
+ * @param {*} clientId - The ID of the client.
+ * @throws {Error} Throws an error if the procedure has not been started by the client or if it does not exist.
+ * @throws {Error} Throws an error if there is an issue querying the database.
+ * @throws {Error} Throws an error if there is an issue with the query.
+ * @returns {Promise<Array>} An array of tasks started by the client.
+ */
 export const getClientStartedTasksService = async (
   startedProcedureId,
   clientId,
@@ -622,20 +632,53 @@ export const getClientStartedTasksService = async (
       throw new Error('El procedimiento iniciado no existe');
     }
 
-    // Get the started tasks of the started procedure which are not rejected
-    const tasksQuery = await pool.query("SELECT * FROM started_task WHERE started_procedure_id = $1 AND status != 'rejected'", [
-      startedProcedureId,
-    ]);
+    const tasksQuery = await pool.query(
+      `
+        SELECT
+          st.id,
+          st.started_procedure_id,
+          st.task_id,
+          st.employee_id,
+          st.status, 
+          st.document_uploaded,
+          st.rejected_reason,
+          st.start_date,      
+          st.end_date,        
+          t.name              AS task_name,
+          t.description       AS task_description,
+          t.xp                AS task_xp,
+          t.procedure_id      AS task_procedure_id,
+          t.role_id           AS task_role_id,
+          t.estimated_duration_days AS task_estimated_duration,
+          t.difficulty        AS task_difficulty
+        FROM started_task st
+        INNER JOIN task t
+          ON st.task_id = t.id
+        WHERE
+          st.started_procedure_id = $1
+          AND st.status != 'rejected' ORDER BY st.start_date DESC
+      `,
+      [startedProcedureId],
+    );
 
-    const tasks = tasksQuery.rows;
-    return tasks;
-  }
-  catch (error) {
+    const tasksWithInfo = tasksQuery.rows;
+    return tasksWithInfo;
+  } catch (error) {
     console.error('Error al obtener las tareas iniciadas:', error);
     throw new Error(error.message || 'Error al obtener las tareas iniciadas');
   }
 };
 
+/**
+ * Retrieves pending tasks for a client.
+ *
+ * @param {*} startedProcedureId - The ID of the started procedure.
+ * @param {*} clientId - The ID of the client.
+ * @returns {Promise<Array>} An array of pending tasks.
+ * @throws {Error} Throws an error if the procedure has not been started by the client or if it does not exist.
+ * @throws {Error} Throws an error if there is an issue querying the database.
+ * @throws {Error} Throws an error if there is an issue with the query.
+ */
 export const getClientPendingTasksService = async (
   startedProcedureId,
   clientId,
@@ -673,14 +716,13 @@ export const getClientPendingTasksService = async (
         AND id NOT IN (
           SELECT task_id FROM started_task
           WHERE started_procedure_id = $2
-            AND status IN ('pending', 'completed')
+            AND status IN ('pending', 'completed') ORDER BY start_date DESC
         )
     `,
       [procedureId.rows[0].procedure_id, startedProcedureId],
     );
 
     return tasksQuery.rows;
-
   } catch (error) {
     console.error('Error al obtener las tareas pendientes:', error);
     throw new Error(error.message || 'Error al obtener las tareas pendientes');

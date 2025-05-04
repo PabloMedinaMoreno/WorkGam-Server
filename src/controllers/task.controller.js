@@ -180,6 +180,7 @@ export const uploadTask = async (req, res) => {
       .status(200)
       .json({ message: 'Tarea iniciada correctamente', task: startedTask });
   } catch (error) {
+    console.log('Al subir la tarea', error.message);
     if (error.message === 'La tarea ya está completada o pendiente') {
       console.error('La tarea ya está completada o pendiente:', error);
       res.status(409).json({ message: error.message });

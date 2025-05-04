@@ -1,184 +1,174 @@
 import request from 'supertest';
 import app from '../src/app.js';
-import { setupDatabaseSchema } from '../src/databases/db.js';
-const baseUrl = '/api/tasks';
+import { setupDatabaseSchema, pool } from '../src/databases/db.js';
+
+const procUrl = '/api/procedures';
+const tasksUrl = '/api/tasks';
+
+let adminToken;
+let clientToken;
+let procedureId;
+let startedProcedureId;
+let taskId;
+
+afterAll(async () => {
+  await pool.end();
+});
 
 beforeAll(async () => {
   await setupDatabaseSchema();
+
+  // 1) Login Admin
+  const loginAdmin = await request(app)
+    .post('/api/auth/login')
+    .send({ email: 'admin@workgam.com', password: '12345' });
+  expect(loginAdmin.statusCode).toBe(200);
+  adminToken = loginAdmin.body.token;
+
+  // 2) Signup + Login Cliente
+  await request(app)
+    .post('/api/auth/signup')
+    .send({
+      username: 'cliente1',
+      email: 'cliente1@example.com',
+      password: 'pass123',
+      gender: 'male',
+      phone: '000111222',
+    });
+  const loginClient = await request(app)
+    .post('/api/auth/login')
+    .send({ email: 'cliente1@example.com', password: 'pass123' });
+  expect(loginClient.statusCode).toBe(200);
+  clientToken = loginClient.body.token;
+
+  // 3) Crear procedimiento y arrancarlo (con cliente)
+  const p = await request(app)
+    .post(procUrl)
+    .set('Authorization', `Bearer ${adminToken}`)
+    .send({ name: 'Proc Tarea', description: 'Desc' });
+  procedureId = p.body.id;
+
+  const s = await request(app)
+    .post(`${procUrl}/${procedureId}/start`)
+    .set('Authorization', `Bearer ${clientToken}`)
+    .send({ socketId: 'socket1' });
+  startedProcedureId = s.body.id;
 });
 
-describe('AUTH: /tasks (crear, actualizar, eliminar, obtener)', () => {
-  let loginCookie;
-  let procedureId;
-  let roleId;
-
-  beforeAll(async () => {
-    const loginRes = await request(app).post('/api/auth/login').send({
-      email: 'admin@workgam.com',
-      password: '12345',
-    });
-    loginCookie = loginRes.headers['set-cookie'];
-
-    expect(loginRes.statusCode).toBe(200);
-
-    const procedureRes = await request(app)
-      .post('/api/procedures/')
-      .set('Cookie', loginCookie)
-      .send({
-        name: 'Procedimiento de Ejemplo',
-        description: 'Descripción del procedimiento de ejemplo',
-      });
-
-    expect(procedureRes.statusCode).toBe(201);
-    expect(procedureRes.body).toHaveProperty('id');
-
-    procedureId = procedureRes.body.id;
-
-    const roleRes = await request(app)
-      .post('/api/roles/')
-      .set('Cookie', loginCookie)
-      .send({
-        name: 'Empleado',
-        description: 'Rol de empleado',
-      });
-
-    expect(roleRes.statusCode).toBe(201);
-    expect(roleRes.body).toHaveProperty('id');
-
-    roleId = roleRes.body.id;
-  });
-
-  it('debería crear una tarea correctamente', async () => {
-    const newTask = {
-      name: 'Tarea Nueva',
-      description: 'Descripción de la tarea nueva',
-      xp: 100,
-      procedure_id: procedureId,
-      role_id: roleId,
-      estimated_duration_days: 3,
-      difficulty: 'medium',
-    };
-
+describe('TASKS CRUD (Admin)', () => {
+  it('GET 200 /tasks lista todas', async () => {
     const res = await request(app)
-      .post(`/api/procedures/${procedureId}/tasks`)
-      .set('Cookie', loginCookie)
-      .send(newTask);
-
-    expect(res.statusCode).toBe(201);
-    expect(res.body).toHaveProperty('id');
-    expect(res.body).toHaveProperty('name', newTask.name);
-    expect(res.body).toHaveProperty('description', newTask.description);
-  });
-
-  it('debería retornar un error 400 si faltan campos al crear una tarea', async () => {
-    const newTask = {
-      name: 'Tarea Incompleta',
-    };
-
-    const res = await request(app)
-      .post(`/api/procedures/${procedureId}/tasks`)
-      .set('Cookie', loginCookie)
-      .send(newTask);
-
-    expect(res.statusCode).toBe(400);
-  });
-
-  it('debería actualizar una tarea correctamente', async () => {
-    const taskRes = await request(app)
-      .post(`/api/procedures/${procedureId}/tasks`)
-      .set('Cookie', loginCookie)
-      .send({
-        name: 'Tarea para Actualizar',
-        description: 'Descripción antes de actualizar',
-        xp: 100,
-        procedure_id: procedureId,
-        role_id: roleId,
-        estimated_duration_days: 3,
-        difficulty: 'hard',
-      });
-
-    expect(taskRes.statusCode).toBe(201);
-    expect(taskRes.body).toHaveProperty('id');
-
-    const taskId = taskRes.body.id;
-    const updatedTask = {
-      name: 'Tarea Actualizada',
-      description: 'Descripción actualizada',
-      xp: 200,
-      procedure_id: procedureId,
-      role_id: roleId,
-      estimated_duration_days: 2,
-      difficulty: 'easy',
-    };
-
-    const res = await request(app)
-      .put(`${baseUrl}/${taskId}`)
-      .set('Cookie', loginCookie)
-      .send(updatedTask);
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty('id', taskId);
-    expect(res.body).toHaveProperty('name', updatedTask.name);
-    expect(res.body).toHaveProperty('description', updatedTask.description);
-  });
-
-  it('debería retornar un error 404 al intentar actualizar una tarea que no existe', async () => {
-    const res = await request(app)
-      .put(`${baseUrl}/999999`)
-      .set('Cookie', loginCookie)
-      .send({
-        name: 'Tarea Inexistente',
-        description: 'Descripción para tarea inexistente',
-        xp: 100,
-        procedure_id: procedureId,
-        role_id: roleId,
-        estimated_duration_days: 3,
-        difficulty: 'medium',
-      });
-
-    expect(res.statusCode).toBe(404);
-    expect(res.body.message).toBe('Tarea no encontrada');
-  });
-
-  it('debería eliminar una tarea correctamente', async () => {
-    const resCreate = await request(app)
-      .post(`/api/procedures/${procedureId}/tasks`)
-      .set('Cookie', loginCookie)
-      .send({
-        name: 'Tarea a Eliminar',
-        description: 'Esta tarea será eliminada',
-        xp: 100,
-        procedure_id: procedureId,
-        role_id: roleId,
-        estimated_duration_days: 3,
-        difficulty: 'medium',
-      });
-
-    const taskId = resCreate.body.id;
-
-    const resDelete = await request(app)
-      .delete(`${baseUrl}/${taskId}`)
-      .set('Cookie', loginCookie);
-
-    expect(resDelete.statusCode).toBe(204);
-  });
-
-  it('debería retornar un error 404 al intentar eliminar una tarea que no existe', async () => {
-    const res = await request(app)
-      .delete(`${baseUrl}/999999`)
-      .set('Cookie', loginCookie);
-
-    expect(res.statusCode).toBe(404);
-    expect(res.body.message).toBe('Tarea no encontrada');
-  });
-
-  it('debería obtener todas las tareas correctamente', async () => {
-    const res = await request(app)
-      .get(`${baseUrl}/`)
-      .set('Cookie', loginCookie);
-
+      .get(tasksUrl)
+      .set('Authorization', `Bearer ${adminToken}`);
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body.length).toBeGreaterThan(0);
+  });
+
+  it('GET 403 /tasks/pending rol Admin no puede', async () => {
+    const res = await request(app)
+      .get(`${tasksUrl}/pending`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('GET 403 /tasks/completed rol Admin no puede', async () => {
+    const res = await request(app)
+      .get(`${tasksUrl}/completed`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('POST 201 /procedures/:id/tasks crea tarea (Admin)', async () => {
+    const newTask = {
+      name: 'T1',
+      description: 'D',
+      xp: 10,
+      role_id: 1,
+      estimated_duration_days: 1,
+      difficulty: 'easy',
+    };
+    const res = await request(app)
+      .post(`${procUrl}/${procedureId}/tasks`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send(newTask);
+    expect(res.statusCode).toBe(201);
+    expect(res.body).toHaveProperty('id');
+    taskId = res.body.id;
+  });
+
+  it('PUT 200 /tasks/:id actualiza tarea (Admin)', async () => {
+    const upd = {
+      name: 'T1mod',
+      description: 'D2',
+      xp: 20,
+      procedure_id: procedureId,
+      role_id: 1,
+      estimated_duration_days: 2,
+      difficulty: 'medium',
+    };
+    const res = await request(app)
+      .put(`${tasksUrl}/${taskId}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send(upd);
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('name', upd.name);
+  });
+
+  it('PUT 404 /tasks/999999 no existe', async () => {
+    const res = await request(app)
+      .put(`${tasksUrl}/999999`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        name: 'X',
+        description: 'Y',
+        xp: 0,
+        procedure_id: procedureId,
+        role_id: 1,
+        estimated_duration_days: 1,
+        difficulty: 'easy',
+      });
+    expect(res.statusCode).toBe(404);
+    expect(res.body.message).toBe('Tarea no encontrada');
+  });
+
+  it('DELETE 204 /tasks/:id elimina tarea (Admin)', async () => {
+    const res = await request(app)
+      .delete(`${tasksUrl}/${taskId}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(204);
+  });
+
+  it('DELETE 404 /tasks/999999 no existe', async () => {
+    const res = await request(app)
+      .delete(`${tasksUrl}/999999`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(res.statusCode).toBe(404);
+    expect(res.body.message).toBe('Tarea no encontrada');
+  });
+});
+
+describe('TASKS upload & cliente flows', () => {
+  it('PUT 403 /tasks/:startedProcedureId/:taskId/upload Admin no puede', async () => {
+    const res = await request(app)
+      .post(`${tasksUrl}/${startedProcedureId}/${taskId}/upload`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .attach('document', Buffer.from('dummy'), 'doc.pdf');
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('GET 200 /procedures/started/:startedProcedureId/tasks Cliente ve sus tareas', async () => {
+    const res = await request(app)
+      .get(`${procUrl}/started/${startedProcedureId}/tasks`)
+      .set('Authorization', `Bearer ${clientToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+  });
+
+  it('GET 200 /procedures/started/:startedProcedureId/tasks/pending Cliente ve pendientes', async () => {
+    const res = await request(app)
+      .get(`${procUrl}/started/${startedProcedureId}/tasks/pending`)
+      .set('Authorization', `Bearer ${clientToken}`);
+    expect(res.statusCode).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
   });
 });

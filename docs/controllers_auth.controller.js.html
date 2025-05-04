@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: controllers/auth.controller.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: controllers/auth.controller.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {
+  signupService,
+  loginService,
+  profileService,
+  updateProfileService,
+  updateProfilePicService,
+  changePasswordService,
+  forgotPasswordService,
+  resetPasswordService,
+} from '../services/auth.service.js';
+import { createAndSendNotificationService } from '../services/notification.service.js';
+
+/**
+ * Registers a new user.
+ *
+ * Responds with:
+ *  - 201 Created: If registration is successful.
+ *  - 409 Conflict: If the email already exists.
+ *  - 500 Internal Server Error: For general errors.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ */
+export const signup = async (req, res) => {
+  try {
+    const { username, email, password, gender, phone } = req.body;
+    const { user, token } = await signupService({
+      username,
+      email,
+      password,
+      gender,
+      phone,
+    });
+
+    // Send welcome notification
+    await createAndSendNotificationService(
+      user.id,
+      '¡Bienvenido a la plataforma!',
+    );
+
+    res.status(201).json({
+      user,
+      token,
+    });
+  } catch (error) {
+    if (error.message === 'El email ya está registrado') {
+      return res.status(409).json({ message: error.message });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Authenticates a user.
+ *
+ * Responds with:
+ *  - 200 OK: If login is successful.
+ *  - 404 Not Found: If the user does not exist.
+ *  - 401 Unauthorized: If the password is incorrect.
+ *  - 500 Internal Server Error: For general errors.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ */
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const { user, token } = await loginService({ email, password });
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      user,
+      token,
+    });
+  } catch (error) {
+    if (error.message === 'El usuario no existe') {
+      return res.status(404).json({ message: error.message });
+    }
+    if (error.message === 'Contraseña inválida') {
+      return res.status(401).json({ message: error.message });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Retrieves the authenticated user's profile.
+ *
+ * Responds with:
+ *  - 200 OK: If the profile is retrieved successfully.
+ *  - 500 Internal Server Error: If an error occurs.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ */
+export const profile = async (req, res) => {
+  try {
+    const userProfile = await profileService(req.user.id);
+    res.status(200).json(userProfile);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Updates the user's profile.
+ *
+ * Responds with:
+ *  - 200 OK: If the profile is updated successfully.
+ *  - 500 Internal Server Error: If an error occurs.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ */
+export const updateProfile = async (req, res) => {
+  try {
+    const { username, email, phone } = req.body;
+    const updatedProfile = await updateProfileService(req.user.id, {
+      username,
+      email,
+      phone,
+    });
+    res.status(200).json(updatedProfile);
+  } catch (error) {
+    if (error.message === 'El email ya está registrado') {
+      return res.status(409).json({ message: error.message });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Updates the user's profile picture.
+ *
+ * Responds with:
+ *  - 200 OK: If the profile picture is updated successfully.
+ *  - 500 Internal Server Error: If an error occurs.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ */
+export const updateProfilePic = async (req, res) => {
+  try {
+    const updatedProfile = await updateProfilePicService(req.user.id, req.file);
+    res.status(200).json(updatedProfile);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Changes the user's password.
+ *
+ * Responds with:
+ *  - 200 OK: If the password is changed successfully.
+ *  - 400 Bad Request: If the new passwords do not match.
+ *  - 404 Not Found: If the user is not found.
+ *  - 401 Unauthorized: If the current password is incorrect.
+ *  - 500 Internal Server Error: If an error occurs.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ */
+export const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+    const result = await changePasswordService(req.user.id, {
+      oldPassword,
+      newPassword,
+      confirmPassword,
+    });
+    res.status(200).json(result);
+  } catch (error) {
+    if (error.message === 'Las contraseñas no coinciden') {
+      return res.status(400).json({ message: error.message });
+    }
+    if (error.message === 'Usuario no encontrado') {
+      return res.status(404).json({ message: error.message });
+    }
+    if (error.message === 'Contraseña actual incorrecta') {
+      return res.status(401).json({ message: error.message });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Handles the password reset request.
+ *
+ * Sends a password reset email to the user.
+ *
+ * Responds with:
+ * - 200 OK: If the email is sent successfully.
+ * - 400 Bad Request: If the email is not provided or invalid.
+ * - 500 Internal Server Error: If an error occurs.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ */
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const result = await forgotPasswordService({ email });
+    return res.status(200).json(result);
+  } catch (error) {
+    if (error.message === 'El email no está registrado') {
+      return res.status(400).json({ message: error.message });
+    }
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Resets the user's password.
+ *
+ * Responds with:
+ * - 200 OK: If the password is reset successfully.
+ * - 400 Bad Request: If the token is invalid or expired.
+ * - 500 Internal Server Error: If an error occurs.
+ *
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ */
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+    const result = await resetPasswordService({ token, password });
+    return res.status(200).json(result);
+  } catch (error) {
+    if (error.message === 'Token inválido o expirado') {
+      return res.status(400).json({ message: error.message });
+    }
+    return res.status(500).json({ message: error.message });
+  }
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#acceptTask">acceptTask</a></li><li><a href="global.html#acceptTaskService">acceptTaskService</a></li><li><a href="global.html#authRequired">authRequired</a></li><li><a href="global.html#calculateXPGamification">calculateXPGamification</a></li><li><a href="global.html#cancelStartedProcedure">cancelStartedProcedure</a></li><li><a href="global.html#cancelStartedProcedureService">cancelStartedProcedureService</a></li><li><a href="global.html#changePassword">changePassword</a></li><li><a href="global.html#changePasswordService">changePasswordService</a></li><li><a href="global.html#checkBucketAccess">checkBucketAccess</a></li><li><a href="global.html#checkDBConnection">checkDBConnection</a></li><li><a href="global.html#checkS3Connection">checkS3Connection</a></li><li><a href="global.html#createAccessToken">createAccessToken</a></li><li><a href="global.html#createAndSendNotificationService">createAndSendNotificationService</a></li><li><a href="global.html#createProcedure">createProcedure</a></li><li><a href="global.html#createProcedureService">createProcedureService</a></li><li><a href="global.html#createProcedureTask">createProcedureTask</a></li><li><a href="global.html#createProcedureTaskService">createProcedureTaskService</a></li><li><a href="global.html#createRole">createRole</a></li><li><a href="global.html#createRoleService">createRoleService</a></li><li><a href="global.html#createWorker">createWorker</a></li><li><a href="global.html#createWorkerService">createWorkerService</a></li><li><a href="global.html#deleteAllNotifications">deleteAllNotifications</a></li><li><a href="global.html#deleteAllNotificationsService">deleteAllNotificationsService</a></li><li><a href="global.html#deleteNotification">deleteNotification</a></li><li><a href="global.html#deleteNotificationService">deleteNotificationService</a></li><li><a href="global.html#deleteProcedure">deleteProcedure</a></li><li><a href="global.html#deleteProcedureService">deleteProcedureService</a></li><li><a href="global.html#deleteRole">deleteRole</a></li><li><a href="global.html#deleteRoleService">deleteRoleService</a></li><li><a href="global.html#deleteTask">deleteTask</a></li><li><a href="global.html#deleteTaskService">deleteTaskService</a></li><li><a href="global.html#deleteWorker">deleteWorker</a></li><li><a href="global.html#deleteWorkerService">deleteWorkerService</a></li><li><a href="global.html#forgotPassword">forgotPassword</a></li><li><a href="global.html#forgotPasswordService">forgotPasswordService</a></li><li><a href="global.html#getClientPendingTasksService">getClientPendingTasksService</a></li><li><a href="global.html#getClientStartedTasksService">getClientStartedTasksService</a></li><li><a href="global.html#getCompletedTasks">getCompletedTasks</a></li><li><a href="global.html#getCompletedTasksService">getCompletedTasksService</a></li><li><a href="global.html#getEmployeeRolesService">getEmployeeRolesService</a></li><li><a href="global.html#getEmployeeStatistics">getEmployeeStatistics</a></li><li><a href="global.html#getEmployeeStatisticsService">getEmployeeStatisticsService</a></li><li><a href="global.html#getGamificationLevels">getGamificationLevels</a></li><li><a href="global.html#getGamificationLevelsService">getGamificationLevelsService</a></li><li><a href="global.html#getLevelProgression">getLevelProgression</a></li><li><a href="global.html#getLevelProgressionService">getLevelProgressionService</a></li><li><a href="global.html#getMyStartedProcedures">getMyStartedProcedures</a></li><li><a href="global.html#getMyStartedProceduresService">getMyStartedProceduresService</a></li><li><a href="global.html#getNotifications">getNotifications</a></li><li><a href="global.html#getNotificationsService">getNotificationsService</a></li><li><a href="global.html#getPendingTaskService">getPendingTaskService</a></li><li><a href="global.html#getPendingTasks">getPendingTasks</a></li><li><a href="global.html#getProcedureTasks">getProcedureTasks</a></li><li><a href="global.html#getProcedureTasksService">getProcedureTasksService</a></li><li><a href="global.html#getProcedures">getProcedures</a></li><li><a href="global.html#getProceduresService">getProceduresService</a></li><li><a href="global.html#getRanking">getRanking</a></li><li><a href="global.html#getRankingService">getRankingService</a></li><li><a href="global.html#getRoles">getRoles</a></li><li><a href="global.html#getRolesService">getRolesService</a></li><li><a href="global.html#getStartedProcedureTasks">getStartedProcedureTasks</a></li><li><a href="global.html#getStartedProcedureTasksService">getStartedProcedureTasksService</a></li><li><a href="global.html#getStartedProcedures">getStartedProcedures</a></li><li><a href="global.html#getStartedProceduresService">getStartedProceduresService</a></li><li><a href="global.html#getStartedTaskByStatusService">getStartedTaskByStatusService</a></li><li><a href="global.html#getStartedTaskService">getStartedTaskService</a></li><li><a href="global.html#getTaskService">getTaskService</a></li><li><a href="global.html#getTasks">getTasks</a></li><li><a href="global.html#getTasksService">getTasksService</a></li><li><a href="global.html#getUserLevelService">getUserLevelService</a></li><li><a href="global.html#getWorkers">getWorkers</a></li><li><a href="global.html#getWorkersService">getWorkersService</a></li><li><a href="global.html#handleXPAndNotificationService">handleXPAndNotificationService</a></li><li><a href="global.html#initializeDatabase">initializeDatabase</a></li><li><a href="global.html#insertDatabaseData">insertDatabaseData</a></li><li><a href="global.html#loadTemplate">loadTemplate</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#loginService">loginService</a></li><li><a href="global.html#main">main</a></li><li><a href="global.html#markAllNotificationsAsRead">markAllNotificationsAsRead</a></li><li><a href="global.html#markAllNotificationsAsReadService">markAllNotificationsAsReadService</a></li><li><a href="global.html#markNotificationAsRead">markNotificationAsRead</a></li><li><a href="global.html#markNotificationAsReadService">markNotificationAsReadService</a></li><li><a href="global.html#profile">profile</a></li><li><a href="global.html#profileService">profileService</a></li><li><a href="global.html#rejectTask">rejectTask</a></li><li><a href="global.html#rejectTaskService">rejectTaskService</a></li><li><a href="global.html#resetPassword">resetPassword</a></li><li><a href="global.html#resetPasswordService">resetPasswordService</a></li><li><a href="global.html#selectEmployeeByRoleService">selectEmployeeByRoleService</a></li><li><a href="global.html#sendEmail">sendEmail</a></li><li><a href="global.html#sendLevelUpNotificationService">sendLevelUpNotificationService</a></li><li><a href="global.html#sendWebSocketNotificationService">sendWebSocketNotificationService</a></li><li><a href="global.html#setupDatabaseSchema">setupDatabaseSchema</a></li><li><a href="global.html#signup">signup</a></li><li><a href="global.html#signupService">signupService</a></li><li><a href="global.html#startProcedure">startProcedure</a></li><li><a href="global.html#startProcedureService">startProcedureService</a></li><li><a href="global.html#updateEmployeeXPService">updateEmployeeXPService</a></li><li><a href="global.html#updateProcedure">updateProcedure</a></li><li><a href="global.html#updateProcedureService">updateProcedureService</a></li><li><a href="global.html#updateProfile">updateProfile</a></li><li><a href="global.html#updateProfilePic">updateProfilePic</a></li><li><a href="global.html#updateProfilePicService">updateProfilePicService</a></li><li><a href="global.html#updateProfileService">updateProfileService</a></li><li><a href="global.html#updateRole">updateRole</a></li><li><a href="global.html#updateRoleService">updateRoleService</a></li><li><a href="global.html#updateStartedProcedureStatusService">updateStartedProcedureStatusService</a></li><li><a href="global.html#updateStartedTaskStatusService">updateStartedTaskStatusService</a></li><li><a href="global.html#updateTask">updateTask</a></li><li><a href="global.html#updateTaskService">updateTaskService</a></li><li><a href="global.html#updateWorker">updateWorker</a></li><li><a href="global.html#updateWorkerService">updateWorkerService</a></li><li><a href="global.html#uploadTask">uploadTask</a></li><li><a href="global.html#uploadTaskService">uploadTaskService</a></li><li><a href="global.html#validateSchema">validateSchema</a></li><li><a href="global.html#verifyRole">verifyRole</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Sun May 04 2025 21:04:32 GMT+0100 (hora de verano de Europa occidental)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,8 +1,8 @@
-import pg from 'pg';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { DATABASE_URL , NODE_ENV} from '../constants/constants.js';
+import pg from "pg";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { DATABASE_URL } from "../constants/constants.js";
 
 export const pool = new pg.Pool({
   connectionString: DATABASE_URL,
@@ -23,9 +23,9 @@ const __dirname = path.dirname(__filename);
 export async function checkDBConnection() {
   try {
     await pool.connect();
-    console.log('>>> Connected to Postgres SQL');
+    console.log(">>> Connected to Postgres SQL");
   } catch (error) {
-    console.error('XXX Error connecting to Postgres', error);
+    console.error("XXX Error connecting to Postgres", error);
   }
 }
 
@@ -38,12 +38,12 @@ export async function checkDBConnection() {
  */
 export async function setupDatabaseSchema() {
   try {
-    const schemaPath = path.resolve(__dirname, 'schema.sql');
-    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+    const schemaPath = path.resolve(__dirname, "schema.sql");
+    const schemaSql = fs.readFileSync(schemaPath, "utf8");
     await pool.query(schemaSql);
-    console.log('>>> Database schema applied successfully');
+    console.log(">>> Database schema applied successfully");
   } catch (error) {
-    console.error('XXX Error applying database schema:', error);
+    console.error("XXX Error applying database schema:", error);
     throw error;
   }
 }
@@ -57,13 +57,13 @@ export async function setupDatabaseSchema() {
  */
 async function insertDatabaseData() {
   try {
-    console.log('>>> Inserting data into database tables...');
-    const dataPath = path.resolve(__dirname, 'data.sql');
-    const dataSql = fs.readFileSync(dataPath, 'utf8');
+    console.log(">>> Inserting data into database tables...");
+    const dataPath = path.resolve(__dirname, "data.sql");
+    const dataSql = fs.readFileSync(dataPath, "utf8");
     await pool.query(dataSql);
-    console.log('>>> Data inserted successfully');
+    console.log(">>> Data inserted successfully");
   } catch (error) {
-    console.error('XXX Error inserting data into database:', error);
+    console.error("XXX Error inserting data into database:", error);
     throw error;
   }
 }
@@ -80,7 +80,7 @@ export async function initializeDatabase() {
     await setupDatabaseSchema();
     await insertDatabaseData();
   } catch (error) {
-    console.error('XXX Error initializing database:', error);
+    console.error("XXX Error initializing database:", error);
     throw error;
   }
 }

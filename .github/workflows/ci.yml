@@ -1,4 +1,4 @@
-name: Node.js CI + Docs Deploy
+name: Node.js CI
 
 on:
   push:
@@ -11,8 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      NODE_ENV: test
-      TEST_DATABASE_URL: postgresql://postgres:QqmFsmWNryAVtrBjfwclkrqrcTVGFZdL@metro.proxy.rlwy.net:21813/railway
+      TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
 
     steps:
       - name: Checkout code

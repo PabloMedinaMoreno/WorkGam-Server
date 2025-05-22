@@ -16,7 +16,7 @@ Built with the tools and technologies:
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=github-actions&logoColor=white)
 ![Zod](https://img.shields.io/badge/Zod-6E40C9?logo=zod&logoColor=white)
 ![ESLint](https://img.shields.io/badge/ESLint-4B32C3?logo=eslint&logoColor=white)
-![Socket](https://img.shields.io/badge/Socket-000000?logo=socket&logoColor=white)
+![Socket](https://img.shields.io/badge/Socket-000000?logo=socket.io&logoColor=white)
 ![Jest](https://img.shields.io/badge/Jest-C21325?logo=jest&logoColor=white)
 
 ---
@@ -84,3 +84,10 @@ Run the project with:
 npm start
 ```
 
+### Testing
+
+To execute the test suite, use:
+
+```bash
+npm test
+```
